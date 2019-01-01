@@ -57,6 +57,12 @@ describe('imageUtil', () => {
       expect(orientation).toBe(ExifOrientation.deg270Flipped);
     });
 
+    it('for image without Exif', async () => {
+      const arr = readFileAsUint8('no-exif.jpg');
+      const orientation = await getOrientation(arr);
+      expect(orientation).toBe(ExifOrientation.unknown);
+    });
+
     it('throws for png', async () => {
       const arr = readFileAsUint8('png.png');
       try {
