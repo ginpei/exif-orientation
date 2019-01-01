@@ -1,31 +1,60 @@
 import * as fs from 'fs';
 import { ExifOrientation, getOrientation } from './imageUtil';
 
-const testCases = new Map<string, ExifOrientation>([
-  ['000-1.jpg', ExifOrientation.original],
-  ['090-6.jpg', ExifOrientation.deg90],
-  ['180-3.jpg', ExifOrientation.deg180],
-  ['270-8.jpg', ExifOrientation.deg270],
-  ['000-flipped-2.jpg', ExifOrientation.flipped],
-  ['090-flipped-5.jpg', ExifOrientation.deg90Flipped],
-  ['180-flipped-4.jpg', ExifOrientation.deg180Flipped],
-  ['270-flipped-7.jpg', ExifOrientation.deg270Flipped],
-]);
+describe('imageUtil', () => {
+  describe('getOrientation()', () => {
+    const readFileAsUint8 = (name: string) => {
+      const file = fs.readFileSync(`test/${name}`);
+      const arr = new Uint8Array(file);
+      return arr;
+    };
 
-Promise.all(
-  [...testCases.keys()].map(async (name) => {
-    const file = fs.readFileSync(`test/${name}`);
-    const arr = new Uint8Array(file);
-    const result: [string, ExifOrientation] = [name, await getOrientation(arr)];
-    return result;
-  }),
-).then((results) => {
-  results.map(([name, result]) => {
-    const expected = testCases.get(name);
-    if (expected !== result) {
-      console.warn(`Unmatched: "${name}" should be ${expected} but ${result}`);
-      process.exit(1);
-    }
+    it('for original image', async () => {
+      const arr = readFileAsUint8('000-1.jpg');
+      const orientation = await getOrientation(arr);
+      expect(orientation).toBe(ExifOrientation.original);
+    });
+
+    it('for image rotated 90 degree', async () => {
+      const arr = readFileAsUint8('090-6.jpg');
+      const orientation = await getOrientation(arr);
+      expect(orientation).toBe(ExifOrientation.deg90);
+    });
+
+    it('for image rotated 180 degree', async () => {
+      const arr = readFileAsUint8('180-3.jpg');
+      const orientation = await getOrientation(arr);
+      expect(orientation).toBe(ExifOrientation.deg180);
+    });
+
+    it('for image rotated 270 degree', async () => {
+      const arr = readFileAsUint8('270-8.jpg');
+      const orientation = await getOrientation(arr);
+      expect(orientation).toBe(ExifOrientation.deg270);
+    });
+
+    it('for flipped image', async () => {
+      const arr = readFileAsUint8('000-flipped-2.jpg');
+      const orientation = await getOrientation(arr);
+      expect(orientation).toBe(ExifOrientation.flipped);
+    });
+
+    it('for flipped image rotated 90 degree', async () => {
+      const arr = readFileAsUint8('090-flipped-5.jpg');
+      const orientation = await getOrientation(arr);
+      expect(orientation).toBe(ExifOrientation.deg90Flipped);
+    });
+
+    it('for flipped image rotated 180 degree', async () => {
+      const arr = readFileAsUint8('180-flipped-4.jpg');
+      const orientation = await getOrientation(arr);
+      expect(orientation).toBe(ExifOrientation.deg180Flipped);
+    });
+
+    it('for flipped image rotated 270 degree', async () => {
+      const arr = readFileAsUint8('270-flipped-7.jpg');
+      const orientation = await getOrientation(arr);
+      expect(orientation).toBe(ExifOrientation.deg270Flipped);
+    });
   });
-  console.log('OK, all clear!');
 });
