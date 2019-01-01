@@ -1,0 +1,32 @@
+{
+  "name": "exif-orientation",
+  "version": "1.0.0",
+  "description": "Detect Exif orientation data from JPEG file",
+  "main": "index.js",
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ginpei/exif-orientation.git"
+  },
+  "keywords": [
+    "jpeg",
+    "exif",
+    "orientation",
+    "image"
+  ],
+  "author": "Ginpei",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ginpei/exif-orientation/issues"
+  },
+  "homepage": "https://github.com/ginpei/exif-orientation#readme",
+  "devDependencies": {
+    "@types/node": "^10.12.18",
+    "tslint": "^5.12.0",
+    "typescript": "^3.2.2"
+  }
+}
