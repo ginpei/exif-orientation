@@ -174,5 +174,5 @@ export async function getOrientation (
 
   // not found
   console.warn('Rotation information was not found');
-  return -1;
+  return ExifOrientation.unknown;
 }
