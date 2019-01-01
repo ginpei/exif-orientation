@@ -56,5 +56,14 @@ describe('imageUtil', () => {
       const orientation = await getOrientation(arr);
       expect(orientation).toBe(ExifOrientation.deg270Flipped);
     });
+
+    it('throws for png', async () => {
+      const arr = readFileAsUint8('png.png');
+      try {
+        await getOrientation(arr);
+      } catch (error) {
+        expect(error.message).toBe('Invalid JPEG format: first 2 bytes');
+      }
+    });
   });
 });
