@@ -26,7 +26,7 @@ const orientationInfoMap: { [orientation: number]: IOrientationInfo } = {
   [ExifOrientation.deg270Flipped]: { rotation: 270, flipped: true },
 };
 
-export function getOrientationInfo (orientation: ExifOrientation) {
+export function getOrientationInfo (orientation: ExifOrientation): IOrientationInfo | undefined {
   return orientationInfoMap[orientation];
 }
 
