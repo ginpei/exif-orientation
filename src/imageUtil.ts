@@ -189,6 +189,17 @@ function* iterateTags (
   }
 }
 
+function findOrientationOffset (view: DataView, idfPosition: number, littleEndian: boolean) {
+  const tagIterator = iterateTags(view, idfPosition, littleEndian);
+  for (const [tag, currentOffset] of tagIterator) {
+    if (tag === statics.orientationTag) {
+      return currentOffset;
+    }
+  }
+
+  return -1;
+}
+
 function getOrientationAt (
   view: DataView,
   offset: number,
@@ -220,21 +231,18 @@ export async function getOrientation (arr: Uint8Array): Promise<Orientation> {
   const littleEndian = isLittleEndian(view, tiffHeaderOffset);
   const idfPosition = findIdfPosition(view, tiffHeaderOffset, littleEndian);
 
-  const idfValuesPosition = idfPosition + 2;
-  const tagIterator = iterateTags(view, idfPosition, littleEndian);
-  for (const [tag, currentOffset] of tagIterator) {
-    if (tag === statics.orientationTag) {
-      const orientation = getOrientationAt(
-        view,
-        currentOffset,
-        idfValuesPosition,
-        littleEndian,
-      );
-      return orientation;
-    }
+  const orientationOffset = findOrientationOffset(view, idfPosition, littleEndian);
+  if (orientationOffset < 0) {
+    console.warn('Rotation information was not found');
+    return Orientation.unknown;
   }
 
-  // not found
-  console.warn('Rotation information was not found');
-  return Orientation.unknown;
+  const idfValuesPosition = idfPosition + 2;
+  const orientation = getOrientationAt(
+    view,
+    orientationOffset,
+    idfValuesPosition,
+    littleEndian,
+  );
+  return orientation;
 }
