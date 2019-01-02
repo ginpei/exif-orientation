@@ -127,6 +127,15 @@ async function findTiffHeaderOffset (view: DataView) {
   return tiffHeaderOffset;
 }
 
+function isLittleEndian (view: DataView, tiffHeaderOffset: number) {
+  const endian = view.getUint16(
+    tiffHeaderOffset + statics.offsets.tiffHeader.byteOrder,
+    false,
+  );
+  const littleEndian = endian === statics.orderLittleEndian;
+  return littleEndian;
+}
+
 function findIdfPosition (
   view: DataView,
   tiffHeaderOffset: number,
@@ -170,12 +179,7 @@ export async function getOrientation (arr: Uint8Array): Promise<Orientation> {
     return Orientation.unknown;
   }
 
-  const littleEndian =
-    view.getUint16(
-      tiffHeaderOffset + statics.offsets.tiffHeader.byteOrder,
-      false,
-    ) === statics.orderLittleEndian;
-
+  const littleEndian = isLittleEndian(view, tiffHeaderOffset);
   const idfPosition = findIdfPosition(view, tiffHeaderOffset, littleEndian);
 
   // IFD p.23
