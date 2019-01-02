@@ -73,16 +73,9 @@ function isValidJpeg (view: DataView) {
 }
 
 /**
- * @see http://www.cipa.jp/std/documents/j/DC-008-2012_J.pdf
+ * Returns `-1` if not found.
  */
-export async function getOrientation (
-  arr: Uint8Array,
-): Promise<Orientation> {
-  const view = new DataView(arr.buffer);
-  if (!isValidJpeg(view)) {
-    throw new Error('Invalid JPEG format: first 2 bytes');
-  }
-
+async function findTiffHeaderOffset (view: DataView) {
   // APPx/Exif p.18, 19
   // - marker (short) `0xffe1` = APP1
   // - length (short) of segment
@@ -91,6 +84,7 @@ export async function getOrientation (
   // - content
   // (The doc describe APP1 have to lay next to the SOI,
   //  however, Photoshop renders a JPEG file that SOI is followed by APP0.)
+
   let segmentPosition = statics.offsets.firstMarker;
   while (true) {
     // just in case
@@ -127,7 +121,26 @@ export async function getOrientation (
       return -1;
     }
   }
+
   const tiffHeaderOffset = segmentPosition + statics.offsets.tiffHeader.fromSegment;
+  return tiffHeaderOffset;
+}
+
+/**
+ * @see http://www.cipa.jp/std/documents/j/DC-008-2012_J.pdf
+ */
+export async function getOrientation (
+  arr: Uint8Array,
+): Promise<Orientation> {
+  const view = new DataView(arr.buffer);
+  if (!isValidJpeg(view)) {
+    throw new Error('Invalid JPEG format: first 2 bytes');
+  }
+
+  const tiffHeaderOffset = await findTiffHeaderOffset(view);
+  if (tiffHeaderOffset < 0) {
+    return Orientation.unknown;
+  }
 
   // TIFF Header p.17
   // - byte order (short). `0x4949` = little, `0x4d4d` = big
