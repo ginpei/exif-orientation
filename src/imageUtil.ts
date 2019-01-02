@@ -167,17 +167,18 @@ function findIdfPosition (
 }
 
 function findOrientationOffset (view: DataView, idfFieldOffset: number, littleEndian: boolean) {
-  const tagIterator = iterateTags(view, idfFieldOffset, littleEndian);
-  for (const [tag, currentOffset] of tagIterator) {
+  const fieldIterator = iterateIfdFields(view, idfFieldOffset, littleEndian);
+  for (const offset of fieldIterator) {
+    const tag = view.getUint16(idfFieldOffset + offset, littleEndian);
     if (tag === statics.orientationTag) {
-      return currentOffset;
+      return offset;
     }
   }
 
   return -1;
 }
 
-function* iterateTags (
+function* iterateIfdFields (
   view: DataView,
   idfFieldOffset: number,
   littleEndian: boolean,
@@ -195,8 +196,7 @@ function* iterateTags (
   const fieldLength = 12;
   for (let i = 0; i < numOfIdfFields; i++) {
     const currentOffset = i * fieldLength;
-    const tag = view.getUint16(idfFieldOffset + currentOffset, littleEndian);
-    yield [tag, currentOffset];
+    yield currentOffset;
   }
 }
 
