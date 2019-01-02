@@ -74,6 +74,34 @@ function isValidJpeg (view: DataView) {
 }
 
 /**
+ * @see http://www.cipa.jp/std/documents/j/DC-008-2012_J.pdf
+ */
+export async function getOrientation (arr: Uint8Array): Promise<Orientation> {
+  const view = new DataView(arr.buffer);
+  if (!isValidJpeg(view)) {
+    throw new Error('Invalid JPEG format: first 2 bytes');
+  }
+
+  const tiffHeaderOffset = await findTiffHeaderOffset(view);
+  if (tiffHeaderOffset < 0) {
+    return Orientation.unknown;
+  }
+
+  const littleEndian = isLittleEndian(view, tiffHeaderOffset);
+  const ifdPosition = findIfdPosition(view, tiffHeaderOffset, littleEndian);
+  const ifdFieldOffset = ifdPosition + statics.ifdFieldCountLength;
+
+  const orientationOffset = findOrientationOffset(view, ifdFieldOffset, littleEndian);
+  if (orientationOffset < 0) {
+    console.warn('Rotation information was not found');
+    return Orientation.unknown;
+  }
+
+  const orientation = readOrientationValueAt(view, orientationOffset, littleEndian);
+  return orientation;
+}
+
+/**
  * Returns `-1` if not found.
  */
 async function findTiffHeaderOffset (view: DataView) {
@@ -207,33 +235,5 @@ function readOrientationValueAt (
   littleEndian: boolean,
 ) {
   const orientation = view.getUint16(offset, littleEndian);
-  return orientation;
-}
-
-/**
- * @see http://www.cipa.jp/std/documents/j/DC-008-2012_J.pdf
- */
-export async function getOrientation (arr: Uint8Array): Promise<Orientation> {
-  const view = new DataView(arr.buffer);
-  if (!isValidJpeg(view)) {
-    throw new Error('Invalid JPEG format: first 2 bytes');
-  }
-
-  const tiffHeaderOffset = await findTiffHeaderOffset(view);
-  if (tiffHeaderOffset < 0) {
-    return Orientation.unknown;
-  }
-
-  const littleEndian = isLittleEndian(view, tiffHeaderOffset);
-  const ifdPosition = findIfdPosition(view, tiffHeaderOffset, littleEndian);
-  const ifdFieldOffset = ifdPosition + statics.ifdFieldCountLength;
-
-  const orientationOffset = findOrientationOffset(view, ifdFieldOffset, littleEndian);
-  if (orientationOffset < 0) {
-    console.warn('Rotation information was not found');
-    return Orientation.unknown;
-  }
-
-  const orientation = readOrientationValueAt(view, orientationOffset, littleEndian);
   return orientation;
 }
