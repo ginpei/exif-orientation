@@ -36,20 +36,15 @@ function sleep (ms: number) {
   return new Promise((done) => setTimeout(done, ms));
 }
 
-/**
- * @see http://www.cipa.jp/std/documents/j/DC-008-2012_J.pdf
- */
-export async function getOrientation (
-  arr: Uint8Array,
-): Promise<Orientation> {
-  const jpeg = 0xffd8;
-  const exifMarker = 0xffe1;
-  const exifId = 0x45786966; // "E", "X", "I", "F"
-  const orderLittleEndian = 0x4949;
-  const endianAssertion = 0x002a;
-  const orientationTag = 0x0112;
-  // tslint:disable:object-literal-sort-keys
-  const offsets = {
+// tslint:disable:object-literal-sort-keys
+const statics = {
+  jpeg: 0xffd8,
+  exifMarker: 0xffe1,
+  exifId: 0x45786966, // "E", "X", "I", "F"
+  orderLittleEndian: 0x4949,
+  endianAssertion: 0x002a,
+  orientationTag: 0x0112,
+  offsets: {
     firstMarker: 2,
     segment: {
       marker: 0,
@@ -69,12 +64,18 @@ export async function getOrientation (
       count: 4,
       value: 8,
     },
-  };
-  // tslint:enable:object-literal-sort-keys
+  },
+};
+// tslint:enable:object-literal-sort-keys
 
+/**
+ * @see http://www.cipa.jp/std/documents/j/DC-008-2012_J.pdf
+ */
+export async function getOrientation (
+  arr: Uint8Array,
+): Promise<Orientation> {
   const view = new DataView(arr.buffer);
-
-  if (view.getUint16(0, false) !== jpeg) {
+  if (view.getUint16(0, false) !== statics.jpeg) {
     throw new Error('Invalid JPEG format: first 2 bytes');
   }
 
@@ -86,21 +87,21 @@ export async function getOrientation (
   // - content
   // (The doc describe APP1 have to lay next to the SOI,
   //  however, Photoshop renders a JPEG file that SOI is followed by APP0.)
-  let segmentPosition = offsets.firstMarker;
+  let segmentPosition = statics.offsets.firstMarker;
   while (true) {
     // just in case
     await sleep(1);
 
     const marker = view.getUint16(
-      segmentPosition + offsets.segment.marker,
+      segmentPosition + statics.offsets.segment.marker,
       false,
     );
-    if (marker === exifMarker) {
+    if (marker === statics.exifMarker) {
       const id = view.getUint32(
-        segmentPosition + offsets.segment.exifId,
+        segmentPosition + statics.offsets.segment.exifId,
         false,
       );
-      if (id === exifId) {
+      if (id === statics.exifId) {
         // found, yay!
         break;
       } else {
@@ -112,7 +113,7 @@ export async function getOrientation (
       }
     }
 
-    const offsetLength = offsets.segment.length;
+    const offsetLength = statics.offsets.segment.length;
     const length =
       offsetLength + view.getUint16(segmentPosition + offsetLength, false);
     segmentPosition += length;
@@ -122,26 +123,26 @@ export async function getOrientation (
       return -1;
     }
   }
-  const tiffHeaderOffset = segmentPosition + offsets.tiffHeader.fromSegment;
+  const tiffHeaderOffset = segmentPosition + statics.offsets.tiffHeader.fromSegment;
 
   // TIFF Header p.17
   // - byte order (short). `0x4949` = little, `0x4d4d` = big
   // - 42 (0x002a) (short)
   // - offset of IFD (long). Minimum is `0x00000008` (8).
   const littleEndian =
-    view.getUint16(tiffHeaderOffset + offsets.tiffHeader.byteOrder, false) ===
-    orderLittleEndian;
+    view.getUint16(tiffHeaderOffset + statics.offsets.tiffHeader.byteOrder, false) ===
+    statics.orderLittleEndian;
   const endianAssertionValue = view.getUint16(
-    tiffHeaderOffset + offsets.tiffHeader.endianAssertion,
+    tiffHeaderOffset + statics.offsets.tiffHeader.endianAssertion,
     littleEndian,
   );
-  if (endianAssertionValue !== endianAssertion) {
+  if (endianAssertionValue !== statics.endianAssertion) {
     throw new Error(
       `Invalid JPEG format: littleEndian ${littleEndian}, assertion: 0x${endianAssertionValue}`,
     );
   }
   const idfDistance = view.getUint32(
-    tiffHeaderOffset + offsets.tiffHeader.ifdOffset,
+    tiffHeaderOffset + statics.offsets.tiffHeader.ifdOffset,
     littleEndian,
   );
   const idfPosition = tiffHeaderOffset + idfDistance;
@@ -160,8 +161,8 @@ export async function getOrientation (
   for (let i = 0; i < numOfIdfFields; i++) {
     const currentOffset = i * fieldLength;
     const tag = view.getUint16(idfValuesPosition + currentOffset, littleEndian);
-    if (tag === orientationTag) {
-      const valueOffset = currentOffset + offsets.ifd.value;
+    if (tag === statics.orientationTag) {
+      const valueOffset = currentOffset + statics.offsets.ifd.value;
       const orientation = view.getUint16(
         idfValuesPosition + valueOffset,
         littleEndian,
