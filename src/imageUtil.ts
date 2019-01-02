@@ -42,8 +42,6 @@ function sleep (ms: number) {
 export async function getOrientation (
   arr: Uint8Array,
 ): Promise<Orientation> {
-  // TODO check why this is called twice
-
   const jpeg = 0xffd8;
   const exifMarker = 0xffe1;
   const exifId = 0x45786966; // "E", "X", "I", "F"
@@ -74,8 +72,6 @@ export async function getOrientation (
   };
   // tslint:enable:object-literal-sort-keys
 
-  // const buffer = await readFileAsArrayBuffer(file);
-  // const arr = new Uint8Array(buffer);
   const view = new DataView(arr.buffer);
 
   if (view.getUint16(0, false) !== jpeg) {
