@@ -165,6 +165,30 @@ function findIdfPosition (
   return idfPosition;
 }
 
+function* iterateTags (
+  view: DataView,
+  idfPosition: number,
+  littleEndian: boolean,
+) {
+  // IFD p.23
+  // - num of IFD fields (short)
+  // - IFD:
+  //   - tag (short)
+  //   - type (short)
+  //   - count (long)
+  //   - value offset (long)
+  // - IFD...
+
+  const numOfIdfFields = view.getUint16(idfPosition, littleEndian);
+  const idfValuesPosition = idfPosition + 2;
+  const fieldLength = 12;
+  for (let i = 0; i < numOfIdfFields; i++) {
+    const currentOffset = i * fieldLength;
+    const tag = view.getUint16(idfValuesPosition + currentOffset, littleEndian);
+    yield [tag, currentOffset];
+  }
+}
+
 /**
  * @see http://www.cipa.jp/std/documents/j/DC-008-2012_J.pdf
  */
@@ -182,20 +206,9 @@ export async function getOrientation (arr: Uint8Array): Promise<Orientation> {
   const littleEndian = isLittleEndian(view, tiffHeaderOffset);
   const idfPosition = findIdfPosition(view, tiffHeaderOffset, littleEndian);
 
-  // IFD p.23
-  // - num of IFD fields (short)
-  // - IFD:
-  //   - tag (short)
-  //   - type (short)
-  //   - count (long)
-  //   - value offset (long)
-  // - IFD...
-  const numOfIdfFields = view.getUint16(idfPosition, littleEndian);
   const idfValuesPosition = idfPosition + 2;
-  const fieldLength = 12;
-  for (let i = 0; i < numOfIdfFields; i++) {
-    const currentOffset = i * fieldLength;
-    const tag = view.getUint16(idfValuesPosition + currentOffset, littleEndian);
+  const tagIterator = iterateTags(view, idfPosition, littleEndian);
+  for (const [tag, currentOffset] of tagIterator) {
     if (tag === statics.orientationTag) {
       const valueOffset = currentOffset + statics.offsets.ifd.value;
       const orientation = view.getUint16(
