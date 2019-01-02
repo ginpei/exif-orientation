@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { getOrientation, Orientation } from './imageUtil';
+import { getOrientation, Orientation } from './exif-orientation';
 
 describe('imageUtil', () => {
   describe('getOrientation()', () => {
