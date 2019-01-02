@@ -137,7 +137,7 @@ function isLittleEndian (view: DataView, tiffHeaderOffset: number) {
   return littleEndian;
 }
 
-function findIdfPosition (
+function findIfdPosition (
   view: DataView,
   tiffHeaderOffset: number,
   littleEndian: boolean | undefined,
@@ -157,21 +157,21 @@ function findIdfPosition (
     );
   }
 
-  const idfDistance = view.getUint32(
+  const ifdDistance = view.getUint32(
     tiffHeaderOffset + statics.offsets.tiffHeader.ifdOffset,
     littleEndian,
   );
 
-  const idfPosition = tiffHeaderOffset + idfDistance;
-  return idfPosition;
+  const ifdPosition = tiffHeaderOffset + ifdDistance;
+  return ifdPosition;
 }
 
-function findOrientationOffset (view: DataView, idfFieldOffset: number, littleEndian: boolean) {
-  const fieldIterator = iterateIfdFields(view, idfFieldOffset, littleEndian);
+function findOrientationOffset (view: DataView, ifdFieldOffset: number, littleEndian: boolean) {
+  const fieldIterator = iterateIfdFields(view, ifdFieldOffset, littleEndian);
   for (const offset of fieldIterator) {
-    const tag = view.getUint16(idfFieldOffset + offset, littleEndian);
+    const tag = view.getUint16(ifdFieldOffset + offset, littleEndian);
     if (tag === statics.orientationTag) {
-      const orientationValueOffset = idfFieldOffset + offset + statics.offsets.ifd.value;
+      const orientationValueOffset = ifdFieldOffset + offset + statics.offsets.ifd.value;
       return orientationValueOffset;
     }
   }
@@ -181,7 +181,7 @@ function findOrientationOffset (view: DataView, idfFieldOffset: number, littleEn
 
 function* iterateIfdFields (
   view: DataView,
-  idfFieldOffset: number,
+  ifdFieldOffset: number,
   littleEndian: boolean,
 ) {
   // IFD p.23
@@ -193,9 +193,9 @@ function* iterateIfdFields (
   //   - value offset (long)
   // - IFD...
 
-  const numOfIdfFields = view.getUint16(idfFieldOffset, littleEndian);
+  const numOfIfdFields = view.getUint16(ifdFieldOffset, littleEndian);
   const fieldLength = 12;
-  for (let i = 0; i < numOfIdfFields; i++) {
+  for (let i = 0; i < numOfIfdFields; i++) {
     const currentOffset = i * fieldLength;
     yield currentOffset;
   }
@@ -225,10 +225,10 @@ export async function getOrientation (arr: Uint8Array): Promise<Orientation> {
   }
 
   const littleEndian = isLittleEndian(view, tiffHeaderOffset);
-  const idfPosition = findIdfPosition(view, tiffHeaderOffset, littleEndian);
-  const idfFieldOffset = idfPosition + statics.ifdFieldCountLength;
+  const ifdPosition = findIfdPosition(view, tiffHeaderOffset, littleEndian);
+  const ifdFieldOffset = ifdPosition + statics.ifdFieldCountLength;
 
-  const orientationOffset = findOrientationOffset(view, idfFieldOffset, littleEndian);
+  const orientationOffset = findOrientationOffset(view, ifdFieldOffset, littleEndian);
   if (orientationOffset < 0) {
     console.warn('Rotation information was not found');
     return Orientation.unknown;
