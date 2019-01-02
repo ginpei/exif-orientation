@@ -201,7 +201,7 @@ function* iterateIfdFields (
   }
 }
 
-function getOrientationAt (
+function readOrientationValueAt (
   view: DataView,
   offset: number,
   littleEndian: boolean,
@@ -234,6 +234,6 @@ export async function getOrientation (arr: Uint8Array): Promise<Orientation> {
     return Orientation.unknown;
   }
 
-  const orientation = getOrientationAt(view, orientationOffset, littleEndian);
+  const orientation = readOrientationValueAt(view, orientationOffset, littleEndian);
   return orientation;
 }
