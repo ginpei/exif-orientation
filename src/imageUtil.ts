@@ -33,7 +33,7 @@ const statics = {
   exifId: 0x45786966, // "E", "X", "I", "F"
   orderLittleEndian: 0x4949,
   endianAssertion: 0x002a,
-  ifdCountLength: 2,
+  ifdFieldCountLength: 2,
   orientationTag: 0x0112,
   offsets: {
     firstMarker: 2,
@@ -230,7 +230,7 @@ export async function getOrientation (arr: Uint8Array): Promise<Orientation> {
 
   const littleEndian = isLittleEndian(view, tiffHeaderOffset);
   const idfPosition = findIdfPosition(view, tiffHeaderOffset, littleEndian);
-  const idfFieldOffset = idfPosition + statics.ifdCountLength;
+  const idfFieldOffset = idfPosition + statics.ifdFieldCountLength;
 
   const orientationOffset = findOrientationOffset(view, idfFieldOffset, littleEndian);
   if (orientationOffset < 0) {
