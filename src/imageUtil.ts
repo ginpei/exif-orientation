@@ -126,6 +126,31 @@ async function findTiffHeaderOffset (view: DataView) {
   return tiffHeaderOffset;
 }
 
+function findIdfPosition (view: DataView, tiffHeaderOffset: number, littleEndian: boolean | undefined) {
+  // TIFF Header p.17
+  // - byte order (short). `0x4949` = little, `0x4d4d` = big
+  // - 42 (0x002a) (short)
+  // - offset of IFD (long). Minimum is `0x00000008` (8).
+
+  const endianAssertionValue = view.getUint16(
+    tiffHeaderOffset + statics.offsets.tiffHeader.endianAssertion,
+    littleEndian,
+  );
+  if (endianAssertionValue !== statics.endianAssertion) {
+    throw new Error(
+      `Invalid JPEG format: littleEndian ${littleEndian}, assertion: 0x${endianAssertionValue}`,
+    );
+  }
+
+  const idfDistance = view.getUint32(
+    tiffHeaderOffset + statics.offsets.tiffHeader.ifdOffset,
+    littleEndian,
+  );
+
+  const idfPosition = tiffHeaderOffset + idfDistance;
+  return idfPosition;
+}
+
 /**
  * @see http://www.cipa.jp/std/documents/j/DC-008-2012_J.pdf
  */
@@ -142,27 +167,11 @@ export async function getOrientation (
     return Orientation.unknown;
   }
 
-  // TIFF Header p.17
-  // - byte order (short). `0x4949` = little, `0x4d4d` = big
-  // - 42 (0x002a) (short)
-  // - offset of IFD (long). Minimum is `0x00000008` (8).
   const littleEndian =
     view.getUint16(tiffHeaderOffset + statics.offsets.tiffHeader.byteOrder, false) ===
     statics.orderLittleEndian;
-  const endianAssertionValue = view.getUint16(
-    tiffHeaderOffset + statics.offsets.tiffHeader.endianAssertion,
-    littleEndian,
-  );
-  if (endianAssertionValue !== statics.endianAssertion) {
-    throw new Error(
-      `Invalid JPEG format: littleEndian ${littleEndian}, assertion: 0x${endianAssertionValue}`,
-    );
-  }
-  const idfDistance = view.getUint32(
-    tiffHeaderOffset + statics.offsets.tiffHeader.ifdOffset,
-    littleEndian,
-  );
-  const idfPosition = tiffHeaderOffset + idfDistance;
+
+  const idfPosition = findIdfPosition(view, tiffHeaderOffset, littleEndian);
 
   // IFD p.23
   // - num of IFD fields (short)
