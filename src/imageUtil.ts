@@ -171,7 +171,8 @@ function findOrientationOffset (view: DataView, idfFieldOffset: number, littleEn
   for (const offset of fieldIterator) {
     const tag = view.getUint16(idfFieldOffset + offset, littleEndian);
     if (tag === statics.orientationTag) {
-      return offset;
+      const orientationValueOffset = idfFieldOffset + offset + statics.offsets.ifd.value;
+      return orientationValueOffset;
     }
   }
 
@@ -203,14 +204,9 @@ function* iterateIfdFields (
 function getOrientationAt (
   view: DataView,
   offset: number,
-  idfFieldOffset: number,
   littleEndian: boolean,
 ) {
-  const valueOffset = offset + statics.offsets.ifd.value;
-  const orientation = view.getUint16(
-    idfFieldOffset + valueOffset,
-    littleEndian,
-  );
+  const orientation = view.getUint16(offset, littleEndian);
   return orientation;
 }
 
@@ -238,11 +234,6 @@ export async function getOrientation (arr: Uint8Array): Promise<Orientation> {
     return Orientation.unknown;
   }
 
-  const orientation = getOrientationAt(
-    view,
-    orientationOffset,
-    idfFieldOffset,
-    littleEndian,
-  );
+  const orientation = getOrientationAt(view, orientationOffset, littleEndian);
   return orientation;
 }
