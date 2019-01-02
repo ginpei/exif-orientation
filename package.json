@@ -1,11 +1,12 @@
 {
-  "name": "exif-orientation",
-  "version": "1.0.0",
+  "name": "@ginpei/exif-orientation",
+  "version": "0.0.1",
   "description": "Detect Exif orientation data from JPEG file",
-  "main": "index.js",
+  "main": "out/exif-orientation.js",
+  "types": "out/exif-orientation.d.ts",
   "scripts": {
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
+    "build": "tsc -p ./",
+    "dev": "jest --watch",
     "test": "jest"
   },
   "repository": {
