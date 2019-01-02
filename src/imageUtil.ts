@@ -189,6 +189,20 @@ function* iterateTags (
   }
 }
 
+function getOrientationAt (
+  view: DataView,
+  offset: number,
+  idfValuesPosition: number,
+  littleEndian: boolean,
+) {
+  const valueOffset = offset + statics.offsets.ifd.value;
+  const orientation = view.getUint16(
+    idfValuesPosition + valueOffset,
+    littleEndian,
+  );
+  return orientation;
+}
+
 /**
  * @see http://www.cipa.jp/std/documents/j/DC-008-2012_J.pdf
  */
@@ -210,9 +224,10 @@ export async function getOrientation (arr: Uint8Array): Promise<Orientation> {
   const tagIterator = iterateTags(view, idfPosition, littleEndian);
   for (const [tag, currentOffset] of tagIterator) {
     if (tag === statics.orientationTag) {
-      const valueOffset = currentOffset + statics.offsets.ifd.value;
-      const orientation = view.getUint16(
-        idfValuesPosition + valueOffset,
+      const orientation = getOrientationAt(
+        view,
+        currentOffset,
+        idfValuesPosition,
         littleEndian,
       );
       return orientation;
