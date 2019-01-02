@@ -82,10 +82,12 @@ export async function getOrientation (arr: Uint8Array): Promise<Orientation> {
     throw new Error('Invalid JPEG format: first 2 bytes');
   }
 
-  const tiffHeaderOffset = await findTiffHeaderOffset(view);
-  if (tiffHeaderOffset < 0) {
+  const segmentOffset = await findExifSegmentOffset(view);
+  if (segmentOffset < 0) {
     return Orientation.unknown;
   }
+  const tiffHeaderOffset =
+    segmentOffset + statics.offsets.tiffHeader.fromSegment;
 
   const littleEndian = isLittleEndian(view, tiffHeaderOffset);
   const ifdPosition = findIfdPosition(view, tiffHeaderOffset, littleEndian);
@@ -112,8 +114,20 @@ export async function getOrientation (arr: Uint8Array): Promise<Orientation> {
 /**
  * Returns `-1` if not found.
  */
-async function findTiffHeaderOffset (view: DataView) {
-  // APPx/Exif p.18, 19
+async function findExifSegmentOffset (view: DataView) {
+  for await (const segmentPosition of iterateMarkerSegments(view)) {
+    if (isExifSegment(view, segmentPosition)) {
+      assertExifSegment(view, segmentPosition);
+      return segmentPosition;
+    }
+  }
+
+  // not found
+  return -1;
+}
+
+async function* iterateMarkerSegments (view: DataView) {
+  // APPx/Exif p.18, 19, 150
   // - marker (short) `0xffe1` = APP1
   // - length (short) of segment
   // - padding (short) `0x0000` if exif
@@ -127,26 +141,7 @@ async function findTiffHeaderOffset (view: DataView) {
     // just in case
     await sleep(1);
 
-    const marker = view.getUint16(
-      segmentPosition + statics.offsets.segment.marker,
-      false,
-    );
-    if (marker === statics.exifMarker) {
-      const id = view.getUint32(
-        segmentPosition + statics.offsets.segment.exifId,
-        false,
-      );
-      if (id === statics.exifId) {
-        // found, yay!
-        break;
-      } else {
-        console.warn(
-          'APP1 is not exif format',
-          `0x${marker.toString(16)}, 0x${id.toString(16)}`,
-        );
-        return -1;
-      }
-    }
+    yield segmentPosition;
 
     const offsetLength = statics.offsets.segment.length;
     const length =
@@ -158,10 +153,26 @@ async function findTiffHeaderOffset (view: DataView) {
       return -1;
     }
   }
+}
 
-  const tiffHeaderOffset =
-    segmentPosition + statics.offsets.tiffHeader.fromSegment;
-  return tiffHeaderOffset;
+function isExifSegment (view: DataView, segmentPosition: number) {
+  const marker = view.getUint16(
+    segmentPosition + statics.offsets.segment.marker,
+    false,
+  );
+  return marker === statics.exifMarker;
+}
+
+function assertExifSegment (view: DataView, segmentPosition: number) {
+  // p 150
+
+  const id = view.getUint32(
+    segmentPosition + statics.offsets.segment.exifId,
+    false,
+  );
+  if (id !== statics.exifId) {
+    throw new Error('Segment marked as Exif does not have Exif identifier');
+  }
 }
 
 function isLittleEndian (view: DataView, tiffHeaderOffset: number) {
