@@ -91,13 +91,21 @@ export async function getOrientation (arr: Uint8Array): Promise<Orientation> {
   const ifdPosition = findIfdPosition(view, tiffHeaderOffset, littleEndian);
   const ifdFieldOffset = ifdPosition + statics.ifdFieldCountLength;
 
-  const orientationOffset = findOrientationOffset(view, ifdFieldOffset, littleEndian);
+  const orientationOffset = findOrientationOffset(
+    view,
+    ifdFieldOffset,
+    littleEndian,
+  );
   if (orientationOffset < 0) {
     console.warn('Rotation information was not found');
     return Orientation.unknown;
   }
 
-  const orientation = readOrientationValueAt(view, orientationOffset, littleEndian);
+  const orientation = readOrientationValueAt(
+    view,
+    orientationOffset,
+    littleEndian,
+  );
   return orientation;
 }
 
@@ -194,12 +202,17 @@ function findIfdPosition (
   return ifdPosition;
 }
 
-function findOrientationOffset (view: DataView, ifdFieldOffset: number, littleEndian: boolean) {
+function findOrientationOffset (
+  view: DataView,
+  ifdFieldOffset: number,
+  littleEndian: boolean,
+) {
   const fieldIterator = iterateIfdFields(view, ifdFieldOffset, littleEndian);
   for (const offset of fieldIterator) {
     const tag = view.getUint16(ifdFieldOffset + offset, littleEndian);
     if (tag === statics.orientationTag) {
-      const orientationValueOffset = ifdFieldOffset + offset + statics.offsets.ifd.value;
+      const orientationValueOffset =
+        ifdFieldOffset + offset + statics.offsets.ifd.value;
       return orientationValueOffset;
     }
   }
