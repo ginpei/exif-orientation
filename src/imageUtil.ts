@@ -26,16 +26,6 @@ const orientationInfoMap: { [orientation: number]: IOrientationInfo } = {
   [Orientation.deg270Flipped]: { rotation: 270, flipped: true },
 };
 
-export function getOrientationInfo (
-  orientation: Orientation,
-): IOrientationInfo | undefined {
-  return orientationInfoMap[orientation];
-}
-
-function sleep (ms: number) {
-  return new Promise((done) => setTimeout(done, ms));
-}
-
 // tslint:disable:object-literal-sort-keys
 const statics = {
   jpeg: 0xffd8,
@@ -67,6 +57,20 @@ const statics = {
   },
 };
 // tslint:enable:object-literal-sort-keys
+
+export function getOrientationInfo (
+  orientation: Orientation,
+): IOrientationInfo | undefined {
+  return orientationInfoMap[orientation];
+}
+
+function sleep (ms: number) {
+  return new Promise((done) => setTimeout(done, ms));
+}
+
+function isValidJpeg (view: DataView) {
+  return view.getUint16(0, false) === statics.jpeg;
+}
 
 /**
  * @see http://www.cipa.jp/std/documents/j/DC-008-2012_J.pdf
@@ -174,7 +178,4 @@ export async function getOrientation (
   // not found
   console.warn('Rotation information was not found');
   return Orientation.unknown;
-}
-function isValidJpeg (view: DataView) {
-  return view.getUint16(0, false) === statics.jpeg;
 }
