@@ -165,6 +165,17 @@ function findIdfPosition (
   return idfPosition;
 }
 
+function findOrientationOffset (view: DataView, idfPosition: number, littleEndian: boolean) {
+  const tagIterator = iterateTags(view, idfPosition, littleEndian);
+  for (const [tag, currentOffset] of tagIterator) {
+    if (tag === statics.orientationTag) {
+      return currentOffset;
+    }
+  }
+
+  return -1;
+}
+
 function* iterateTags (
   view: DataView,
   idfPosition: number,
@@ -187,17 +198,6 @@ function* iterateTags (
     const tag = view.getUint16(idfValuesPosition + currentOffset, littleEndian);
     yield [tag, currentOffset];
   }
-}
-
-function findOrientationOffset (view: DataView, idfPosition: number, littleEndian: boolean) {
-  const tagIterator = iterateTags(view, idfPosition, littleEndian);
-  for (const [tag, currentOffset] of tagIterator) {
-    if (tag === statics.orientationTag) {
-      return currentOffset;
-    }
-  }
-
-  return -1;
 }
 
 function getOrientationAt (
