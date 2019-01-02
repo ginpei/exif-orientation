@@ -1,4 +1,4 @@
-export enum ExifOrientation {
+export enum Orientation {
   original = 1,
   deg90 = 6,
   deg180 = 3,
@@ -16,18 +16,18 @@ export interface IOrientationInfo {
 }
 
 const orientationInfoMap: { [orientation: number]: IOrientationInfo } = {
-  [ExifOrientation.original]: { rotation: 0, flipped: false },
-  [ExifOrientation.deg90]: { rotation: 90, flipped: false },
-  [ExifOrientation.deg180]: { rotation: 180, flipped: false },
-  [ExifOrientation.deg270]: { rotation: 270, flipped: false },
-  [ExifOrientation.flipped]: { rotation: 0, flipped: true },
-  [ExifOrientation.deg90Flipped]: { rotation: 90, flipped: true },
-  [ExifOrientation.deg180Flipped]: { rotation: 180, flipped: true },
-  [ExifOrientation.deg270Flipped]: { rotation: 270, flipped: true },
+  [Orientation.original]: { rotation: 0, flipped: false },
+  [Orientation.deg90]: { rotation: 90, flipped: false },
+  [Orientation.deg180]: { rotation: 180, flipped: false },
+  [Orientation.deg270]: { rotation: 270, flipped: false },
+  [Orientation.flipped]: { rotation: 0, flipped: true },
+  [Orientation.deg90Flipped]: { rotation: 90, flipped: true },
+  [Orientation.deg180Flipped]: { rotation: 180, flipped: true },
+  [Orientation.deg270Flipped]: { rotation: 270, flipped: true },
 };
 
 export function getOrientationInfo (
-  orientation: ExifOrientation,
+  orientation: Orientation,
 ): IOrientationInfo | undefined {
   return orientationInfoMap[orientation];
 }
@@ -41,7 +41,7 @@ function sleep (ms: number) {
  */
 export async function getOrientation (
   arr: Uint8Array,
-): Promise<ExifOrientation> {
+): Promise<Orientation> {
   // TODO check why this is called twice
 
   const jpeg = 0xffd8;
@@ -176,5 +176,5 @@ export async function getOrientation (
 
   // not found
   console.warn('Rotation information was not found');
-  return ExifOrientation.unknown;
+  return Orientation.unknown;
 }
