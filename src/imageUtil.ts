@@ -75,7 +75,7 @@ export async function getOrientation (
   arr: Uint8Array,
 ): Promise<Orientation> {
   const view = new DataView(arr.buffer);
-  if (view.getUint16(0, false) !== statics.jpeg) {
+  if (!isValidJpeg(view)) {
     throw new Error('Invalid JPEG format: first 2 bytes');
   }
 
@@ -174,4 +174,7 @@ export async function getOrientation (
   // not found
   console.warn('Rotation information was not found');
   return Orientation.unknown;
+}
+function isValidJpeg (view: DataView) {
+  return view.getUint16(0, false) === statics.jpeg;
 }
