@@ -122,11 +122,16 @@ async function findTiffHeaderOffset (view: DataView) {
     }
   }
 
-  const tiffHeaderOffset = segmentPosition + statics.offsets.tiffHeader.fromSegment;
+  const tiffHeaderOffset =
+    segmentPosition + statics.offsets.tiffHeader.fromSegment;
   return tiffHeaderOffset;
 }
 
-function findIdfPosition (view: DataView, tiffHeaderOffset: number, littleEndian: boolean | undefined) {
+function findIdfPosition (
+  view: DataView,
+  tiffHeaderOffset: number,
+  littleEndian: boolean | undefined,
+) {
   // TIFF Header p.17
   // - byte order (short). `0x4949` = little, `0x4d4d` = big
   // - 42 (0x002a) (short)
@@ -154,9 +159,7 @@ function findIdfPosition (view: DataView, tiffHeaderOffset: number, littleEndian
 /**
  * @see http://www.cipa.jp/std/documents/j/DC-008-2012_J.pdf
  */
-export async function getOrientation (
-  arr: Uint8Array,
-): Promise<Orientation> {
+export async function getOrientation (arr: Uint8Array): Promise<Orientation> {
   const view = new DataView(arr.buffer);
   if (!isValidJpeg(view)) {
     throw new Error('Invalid JPEG format: first 2 bytes');
@@ -168,8 +171,10 @@ export async function getOrientation (
   }
 
   const littleEndian =
-    view.getUint16(tiffHeaderOffset + statics.offsets.tiffHeader.byteOrder, false) ===
-    statics.orderLittleEndian;
+    view.getUint16(
+      tiffHeaderOffset + statics.offsets.tiffHeader.byteOrder,
+      false,
+    ) === statics.orderLittleEndian;
 
   const idfPosition = findIdfPosition(view, tiffHeaderOffset, littleEndian);
 
