@@ -68,5 +68,11 @@ describe('imageUtil', () => {
       const orientation = await getOrientation(arr);
       expect(orientation).toBe(Orientation.unknown);
     });
+
+    it('for empty file', async () => {
+      const arr = readFileAsUint8('empty.txt');
+      const orientation = await getOrientation(arr);
+      expect(orientation).toBe(Orientation.unknown);
+    });
   });
 });

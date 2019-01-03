@@ -70,7 +70,7 @@ function sleep (ms: number) {
 }
 
 function isValidJpeg (view: DataView) {
-  return view.getUint16(0, false) === statics.jpeg;
+  return view.byteLength >= 2 && view.getUint16(0, false) === statics.jpeg;
 }
 
 /**
