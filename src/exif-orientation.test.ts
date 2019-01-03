@@ -63,13 +63,10 @@ describe('imageUtil', () => {
       expect(orientation).toBe(Orientation.unknown);
     });
 
-    it('throws for png', async () => {
+    it('for non-JPEG image', async () => {
       const arr = readFileAsUint8('png.png');
-      try {
-        await getOrientation(arr);
-      } catch (error) {
-        expect(error.message).toBe('Invalid JPEG format: first 2 bytes');
-      }
+      const orientation = await getOrientation(arr);
+      expect(orientation).toBe(Orientation.unknown);
     });
   });
 });

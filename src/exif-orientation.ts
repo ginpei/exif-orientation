@@ -79,7 +79,7 @@ function isValidJpeg (view: DataView) {
 export async function getOrientation (arr: Uint8Array): Promise<Orientation> {
   const view = new DataView(arr.buffer);
   if (!isValidJpeg(view)) {
-    throw new Error('Invalid JPEG format: first 2 bytes');
+    return Orientation.unknown;
   }
 
   const segmentOffset = await findExifSegmentOffset(view);
