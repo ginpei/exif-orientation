@@ -76,8 +76,10 @@ function isValidJpeg (view: DataView) {
 /**
  * @see http://www.cipa.jp/std/documents/j/DC-008-2012_J.pdf
  */
-export async function getOrientation (arr: Uint8Array): Promise<Orientation> {
-  const view = new DataView(arr.buffer);
+export async function getOrientation (
+  buffer: Uint8Array | ArrayBuffer,
+): Promise<Orientation> {
+  const view = prepareDataView(buffer);
   if (!isValidJpeg(view)) {
     return Orientation.unknown;
   }
@@ -109,6 +111,13 @@ export async function getOrientation (arr: Uint8Array): Promise<Orientation> {
     littleEndian,
   );
   return orientation;
+}
+
+function prepareDataView (arrayBuffer: Uint8Array | ArrayBuffer) {
+  const buffer =
+    arrayBuffer instanceof ArrayBuffer ? arrayBuffer : arrayBuffer.buffer;
+  const view = new DataView(buffer);
+  return view;
 }
 
 /**

@@ -3,76 +3,99 @@ import { getOrientation, Orientation } from './exif-orientation';
 
 describe('imageUtil', () => {
   describe('getOrientation()', () => {
-    const readFileAsUint8 = (name: string) => {
-      const file = fs.readFileSync(`test/${name}`);
-      const arr = new Uint8Array(file);
-      return arr;
-    };
+    it('accepts Uint8Array', async () => {
+      // Buffer of Node.js inherits Uint8Array
+      // https://nodejs.org/api/buffer.html#buffer_buffers_and_typedarray
+      const buffer = fs.readFileSync(`test/000-1.jpg`);
 
-    it('for original image', async () => {
-      const arr = readFileAsUint8('000-1.jpg');
-      const orientation = await getOrientation(arr);
+      const orientation = await getOrientation(buffer);
       expect(orientation).toBe(Orientation.original);
     });
 
-    it('for image rotated 90 degree', async () => {
-      const arr = readFileAsUint8('090-6.jpg');
-      const orientation = await getOrientation(arr);
-      expect(orientation).toBe(Orientation.deg90);
+    it('accepts ArrayBuffer', async () => {
+      // from <input type="file">, use File and FileReader to get ArrayBuffer
+      const buffer = fs.readFileSync(`test/000-1.jpg`);
+      const arrayBuffer = new ArrayBuffer(buffer.byteLength);
+      const view = new DataView(arrayBuffer);
+      buffer.forEach((value, index) => {
+        view.setUint8(index, value);
+      });
+
+      const orientation = await getOrientation(arrayBuffer);
+      expect(orientation).toBe(Orientation.original);
     });
 
-    it('for image rotated 180 degree', async () => {
-      const arr = readFileAsUint8('180-3.jpg');
-      const orientation = await getOrientation(arr);
-      expect(orientation).toBe(Orientation.deg180);
-    });
+    describe('recognize orientation from file of', () => {
+      const readFile = (name: string) => {
+        const buffer = fs.readFileSync(`test/${name}`);
+        return buffer;
+      };
 
-    it('for image rotated 270 degree', async () => {
-      const arr = readFileAsUint8('270-8.jpg');
-      const orientation = await getOrientation(arr);
-      expect(orientation).toBe(Orientation.deg270);
-    });
+      it('original image', async () => {
+        const arr = readFile('000-1.jpg');
+        const orientation = await getOrientation(arr);
+        expect(orientation).toBe(Orientation.original);
+      });
 
-    it('for flipped image', async () => {
-      const arr = readFileAsUint8('000-flipped-2.jpg');
-      const orientation = await getOrientation(arr);
-      expect(orientation).toBe(Orientation.flipped);
-    });
+      it('image rotated 90 degree', async () => {
+        const arr = readFile('090-6.jpg');
+        const orientation = await getOrientation(arr);
+        expect(orientation).toBe(Orientation.deg90);
+      });
 
-    it('for flipped image rotated 90 degree', async () => {
-      const arr = readFileAsUint8('090-flipped-5.jpg');
-      const orientation = await getOrientation(arr);
-      expect(orientation).toBe(Orientation.deg90Flipped);
-    });
+      it('image rotated 180 degree', async () => {
+        const arr = readFile('180-3.jpg');
+        const orientation = await getOrientation(arr);
+        expect(orientation).toBe(Orientation.deg180);
+      });
 
-    it('for flipped image rotated 180 degree', async () => {
-      const arr = readFileAsUint8('180-flipped-4.jpg');
-      const orientation = await getOrientation(arr);
-      expect(orientation).toBe(Orientation.deg180Flipped);
-    });
+      it('image rotated 270 degree', async () => {
+        const arr = readFile('270-8.jpg');
+        const orientation = await getOrientation(arr);
+        expect(orientation).toBe(Orientation.deg270);
+      });
 
-    it('for flipped image rotated 270 degree', async () => {
-      const arr = readFileAsUint8('270-flipped-7.jpg');
-      const orientation = await getOrientation(arr);
-      expect(orientation).toBe(Orientation.deg270Flipped);
-    });
+      it('flipped image', async () => {
+        const arr = readFile('000-flipped-2.jpg');
+        const orientation = await getOrientation(arr);
+        expect(orientation).toBe(Orientation.flipped);
+      });
 
-    it('for image without Exif', async () => {
-      const arr = readFileAsUint8('no-exif.jpg');
-      const orientation = await getOrientation(arr);
-      expect(orientation).toBe(Orientation.unknown);
-    });
+      it('flipped image rotated 90 degree', async () => {
+        const arr = readFile('090-flipped-5.jpg');
+        const orientation = await getOrientation(arr);
+        expect(orientation).toBe(Orientation.deg90Flipped);
+      });
 
-    it('for non-JPEG image', async () => {
-      const arr = readFileAsUint8('png.png');
-      const orientation = await getOrientation(arr);
-      expect(orientation).toBe(Orientation.unknown);
-    });
+      it('flipped image rotated 180 degree', async () => {
+        const arr = readFile('180-flipped-4.jpg');
+        const orientation = await getOrientation(arr);
+        expect(orientation).toBe(Orientation.deg180Flipped);
+      });
 
-    it('for empty file', async () => {
-      const arr = readFileAsUint8('empty.txt');
-      const orientation = await getOrientation(arr);
-      expect(orientation).toBe(Orientation.unknown);
+      it('flipped image rotated 270 degree', async () => {
+        const arr = readFile('270-flipped-7.jpg');
+        const orientation = await getOrientation(arr);
+        expect(orientation).toBe(Orientation.deg270Flipped);
+      });
+
+      it('image without Exif', async () => {
+        const arr = readFile('no-exif.jpg');
+        const orientation = await getOrientation(arr);
+        expect(orientation).toBe(Orientation.unknown);
+      });
+
+      it('non-JPEG image', async () => {
+        const arr = readFile('png.png');
+        const orientation = await getOrientation(arr);
+        expect(orientation).toBe(Orientation.unknown);
+      });
+
+      it('empty file', async () => {
+        const arr = readFile('empty.txt');
+        const orientation = await getOrientation(arr);
+        expect(orientation).toBe(Orientation.unknown);
+      });
     });
   });
 });
