@@ -1,6 +1,6 @@
 {
   "name": "@ginpei/exif-orientation",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Detect Exif orientation data from JPEG file",
   "main": "out/exif-orientation.js",
   "types": "out/exif-orientation.d.ts",
