@@ -1,0 +1,6 @@
+.*
+/test/
+jest.config.js
+tsconfig.json
+tslint.json
+tslint.prod.json
