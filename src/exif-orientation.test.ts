@@ -13,7 +13,7 @@ describe('imageUtil', () => {
     });
 
     it('accepts ArrayBuffer', async () => {
-      // from <input type="file">, use File and FileReader to get ArrayBuffer
+      // to get ArrayBuffer from <input type="file">, use File and FileReader
       const buffer = fs.readFileSync(`test/000-1.jpg`);
       const arrayBuffer = new ArrayBuffer(buffer.byteLength);
       const view = new DataView(arrayBuffer);
