@@ -88,9 +88,9 @@ export async function getOrientation (
   if (segmentOffset < 0) {
     return Orientation.unknown;
   }
+
   const tiffHeaderOffset =
     segmentOffset + statics.offsets.tiffHeader.fromSegment;
-
   const littleEndian = isLittleEndian(view, tiffHeaderOffset);
   const ifdPosition = findIfdPosition(view, tiffHeaderOffset, littleEndian);
   const ifdFieldOffset = ifdPosition + statics.ifdFieldCountLength;
