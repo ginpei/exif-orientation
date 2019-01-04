@@ -19,15 +19,8 @@ const elFile = document.querySelector<HTMLInputElement>('#file');
 elFile.addEventListener('change', async (event) => {
   const file = event.target.files[0];
 
-  // read file as buffer
-  const buffer = await new Promise<ArrayBuffer>((resolve) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as ArrayBuffer);
-    reader.readAsArrayBuffer(file);
-  });
-
   // get orientation
-  const orientation = await exif.getOrientation(buffer);
+  const orientation = await exif.getOrientation(file);
 
   // find orientation information
   const info = exif.getOrientationInfo(orientation);
@@ -50,9 +43,9 @@ This package does not have `default`.
 
 To import in TypeScript, you would need to set `moduleResolution` option. Find detail in Q&A section below.
 
-### `function getOrientation(buffer: Uint8Array | ArrayBuffer): Promise<Orientation>`
+### `function getOrientation(input: File | Buffer | ArrayBuffer): Promise<Orientation>`
 
-- `arr: Uint8Array | ArrayBuffer` : JPEG file data.
+- `arr: File | Buffer | ArrayBuffer` : JPEG file data.
 
 ### `enum Orientation`
 
@@ -84,20 +77,9 @@ interface IOrientationInfo {
 const elFile = document.querySelector<HTMLInputElement>('#file');
 const file = elFile.files[0];
 
-// read file as buffer
-const buffer = await new Promise<ArrayBuffer>((resolve) => {
-  const reader = new FileReader();
-  reader.onload = () => resolve(reader.result as ArrayBuffer);
-  reader.readAsArrayBuffer(file);
-});
-
 // get orientation
-const orientation = await exif.getOrientation(buffer);
+const orientation = await exif.getOrientation(file);
 ```
-
-This `buffer` is `ArrayBuffer` from ES2015.
-
-- [ArrayBuffer | MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer)
 
 ### Read file from `fs.readFile()`
 
@@ -108,10 +90,6 @@ const buffer = fs.readFileSync(path);
 // get orientation
 const orientation = await exif.getOrientation(buffer);
 ```
-
-This `buffer` is `Buffer` from Node.js, which inherits `Uint8Array`.
-
-- [Buffer | Node.js v11.6.0 Documentation](https://nodejs.org/api/buffer.html)
 
 ## Q&A
 

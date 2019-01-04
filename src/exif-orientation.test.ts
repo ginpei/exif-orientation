@@ -3,17 +3,14 @@ import { getOrientation, Orientation } from './exif-orientation';
 
 describe('imageUtil', () => {
   describe('getOrientation()', () => {
-    it('accepts Uint8Array', async () => {
-      // Buffer of Node.js inherits Uint8Array
-      // https://nodejs.org/api/buffer.html#buffer_buffers_and_typedarray
+    it('accepts Buffer', async () => {
       const buffer = fs.readFileSync(`test/000-1.jpg`);
-
-      const orientation = await getOrientation(buffer);
+      const orientation = await getOrientation(buffer.buffer);
       expect(orientation).toBe(Orientation.original);
     });
 
     it('accepts ArrayBuffer', async () => {
-      // to get ArrayBuffer from <input type="file">, use File and FileReader
+      // ArrayBuffer is general
       const buffer = fs.readFileSync(`test/000-1.jpg`);
       const arrayBuffer = new ArrayBuffer(buffer.byteLength);
       const view = new DataView(arrayBuffer);
@@ -28,7 +25,7 @@ describe('imageUtil', () => {
     describe('recognize orientation from file of', () => {
       const readFile = (name: string) => {
         const buffer = fs.readFileSync(`test/${name}`);
-        return buffer;
+        return buffer.buffer;
       };
 
       it('original image', async () => {

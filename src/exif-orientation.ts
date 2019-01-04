@@ -77,9 +77,9 @@ function isValidJpeg (view: DataView) {
  * @see http://www.cipa.jp/std/documents/j/DC-008-2012_J.pdf
  */
 export async function getOrientation (
-  buffer: Uint8Array | ArrayBuffer,
+  input: File | Buffer | ArrayBuffer,
 ): Promise<Orientation> {
-  const view = prepareDataView(buffer);
+  const view = await prepareDataView(input);
   if (!isValidJpeg(view)) {
     return Orientation.unknown;
   }
@@ -113,11 +113,33 @@ export async function getOrientation (
   return orientation;
 }
 
-function prepareDataView (arrayBuffer: Uint8Array | ArrayBuffer) {
-  const buffer =
-    arrayBuffer instanceof ArrayBuffer ? arrayBuffer : arrayBuffer.buffer;
-  const view = new DataView(buffer);
+async function prepareDataView (
+  input: File | Buffer | ArrayBuffer,
+): Promise<DataView> {
+  // To run on both browser and Node.js,
+  // need to check constructors existences before checking instance
+
+  let arrayBuffer;
+  if (typeof File !== 'undefined' && input instanceof File) {
+    arrayBuffer = await readFile(input);
+  } else if (typeof Buffer !== 'undefined' && input instanceof Buffer) {
+    arrayBuffer = input.buffer;
+  } else {
+    arrayBuffer = input as ArrayBuffer;
+  }
+
+  const view = new DataView(arrayBuffer);
   return view;
+}
+
+async function readFile (file: File) {
+  const arrayBuffer = await new Promise<ArrayBuffer>((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as ArrayBuffer);
+    reader.readAsArrayBuffer(file);
+  });
+
+  return arrayBuffer;
 }
 
 /**
