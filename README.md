@@ -15,20 +15,30 @@ npm install @ginpei/exif-orientation
 ```ts
 import * as exif from '@ginpei/exif-orientation';
 
+const orientation = await exif.getOrientation(fileOrBuffer);
+```
+
+## Examples
+
+### Read file from `<input type="file">`
+
+```ts
+// get file accessor
 const elFile = document.querySelector<HTMLInputElement>('#file');
-elFile.addEventListener('change', async (event) => {
-  const file = event.target.files[0];
+const file = elFile.files[0];
 
-  // get orientation
-  const orientation = await exif.getOrientation(file);
+// get orientation
+const orientation = await exif.getOrientation(file);
+```
 
-  // find orientation information
-  const info = exif.getOrientationInfo(orientation);
-  console.log(
-    `Rotated ${info.rotation} degree,`,
-    flipped ? 'flipped' : 'not flipped',
-  );
-});
+### Read file from `fs.readFile()`
+
+```js
+// read file as buffer
+const buffer = fs.readFileSync(path);
+
+// get orientation
+const orientation = await exif.getOrientation(buffer);
 ```
 
 ## API References
@@ -66,29 +76,6 @@ interface IOrientationInfo {
   rotation: number;
   flipped: boolean;
 }
-```
-
-## Examples
-
-### Read file from `<input type="file">`
-
-```ts
-// get file accessor
-const elFile = document.querySelector<HTMLInputElement>('#file');
-const file = elFile.files[0];
-
-// get orientation
-const orientation = await exif.getOrientation(file);
-```
-
-### Read file from `fs.readFile()`
-
-```js
-// read file as buffer
-const buffer = fs.readFileSync(path);
-
-// get orientation
-const orientation = await exif.getOrientation(buffer);
 ```
 
 ## Q&A
