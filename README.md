@@ -16,6 +16,10 @@ npm install @ginpei/exif-orientation
 import * as exif from '@ginpei/exif-orientation';
 
 const orientation = await exif.getOrientation(fileOrBuffer);
+console.log(
+  `${orientation.rotation} degree,`,
+  orientation.flipped ? 'flipped' : 'not flipped',
+);
 ```
 
 ## Examples
@@ -51,25 +55,35 @@ import * as exif from '@ginpei/exif-orientation';
 
 This package does not have `default`.
 
-To import in TypeScript, you would need to set `moduleResolution` option. Find detail in Q&A section below.
+To import in TypeScript, you need to set `moduleResolution` option. Find detail in Q&A section below.
 
-### `function getOrientation(input: File | Buffer | ArrayBuffer): Promise<Orientation>`
+### `function getOrientation(input: File | Buffer | ArrayBuffer): Promise<IOrientationInfo | undefined>`
 
-- `arr: File | Buffer | ArrayBuffer` : JPEG file data.
+- `input: File | Buffer | ArrayBuffer` : JPEG file data.
 
-### `enum Orientation`
+If the input is not JPEG file with Exif containing orientation information, it returns `undefined`.
 
-- `Orientation.original`
-- `Orientation.deg90`
-- `Orientation.deg180`
-- `Orientation.deg270`
-- `Orientation.flipped`
-- `Orientation.deg90Flipped`
-- `Orientation.deg180Flipped`
-- `Orientation.deg270Flipped`
-- `Orientation.unknown`
+### `function readOrientationCode(input: File | Buffer | ArrayBuffer): Promise<OrientationCode>`
 
-### `function getOrientationInfo(orientation: Orientation): IOrientationInfo | undefined`
+- `input: File | Buffer | ArrayBuffer` : JPEG file data.
+
+### `enum OrientationCode`
+
+- `OrientationCode.original`
+- `OrientationCode.deg90`
+- `OrientationCode.deg180`
+- `OrientationCode.deg270`
+- `OrientationCode.flipped`
+- `OrientationCode.deg90Flipped`
+- `OrientationCode.deg180Flipped`
+- `OrientationCode.deg270Flipped`
+- `OrientationCode.unknown`
+
+### `function getOrientationInfo(orientation: OrientationCode): IOrientationInfo | undefined`
+
+- `orientation: OrientationCode`
+
+### `interface IOrientationInfo`
 
 ```ts
 interface IOrientationInfo {

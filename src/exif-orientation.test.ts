@@ -1,12 +1,12 @@
 import * as fs from 'fs';
-import { getOrientation, Orientation } from './exif-orientation';
+import { getOrientation } from './exif-orientation';
 
 describe('imageUtil', () => {
   describe('getOrientation()', () => {
     it('accepts Buffer', async () => {
       const buffer = fs.readFileSync(`test/000-1.jpg`);
       const orientation = await getOrientation(buffer.buffer);
-      expect(orientation).toBe(Orientation.original);
+      expect(orientation).toEqual({ rotation: 0, flipped: false });
     });
 
     it('accepts ArrayBuffer', async () => {
@@ -19,7 +19,7 @@ describe('imageUtil', () => {
       });
 
       const orientation = await getOrientation(arrayBuffer);
-      expect(orientation).toBe(Orientation.original);
+      expect(orientation).toEqual({ rotation: 0, flipped: false });
     });
 
     describe('recognize orientation from file of', () => {
@@ -31,67 +31,67 @@ describe('imageUtil', () => {
       it('original image', async () => {
         const arr = readFile('000-1.jpg');
         const orientation = await getOrientation(arr);
-        expect(orientation).toBe(Orientation.original);
+        expect(orientation).toEqual({ rotation: 0, flipped: false });
       });
 
       it('image rotated 90 degree', async () => {
         const arr = readFile('090-6.jpg');
         const orientation = await getOrientation(arr);
-        expect(orientation).toBe(Orientation.deg90);
+        expect(orientation).toEqual({ rotation: 90, flipped: false });
       });
 
       it('image rotated 180 degree', async () => {
         const arr = readFile('180-3.jpg');
         const orientation = await getOrientation(arr);
-        expect(orientation).toBe(Orientation.deg180);
+        expect(orientation).toEqual({ rotation: 180, flipped: false });
       });
 
       it('image rotated 270 degree', async () => {
         const arr = readFile('270-8.jpg');
         const orientation = await getOrientation(arr);
-        expect(orientation).toBe(Orientation.deg270);
+        expect(orientation).toEqual({ rotation: 270, flipped: false });
       });
 
       it('flipped image', async () => {
         const arr = readFile('000-flipped-2.jpg');
         const orientation = await getOrientation(arr);
-        expect(orientation).toBe(Orientation.flipped);
+        expect(orientation).toEqual({ rotation: 0, flipped: true });
       });
 
       it('flipped image rotated 90 degree', async () => {
         const arr = readFile('090-flipped-5.jpg');
         const orientation = await getOrientation(arr);
-        expect(orientation).toBe(Orientation.deg90Flipped);
+        expect(orientation).toEqual({ rotation: 90, flipped: true });
       });
 
       it('flipped image rotated 180 degree', async () => {
         const arr = readFile('180-flipped-4.jpg');
         const orientation = await getOrientation(arr);
-        expect(orientation).toBe(Orientation.deg180Flipped);
+        expect(orientation).toEqual({ rotation: 180, flipped: true });
       });
 
       it('flipped image rotated 270 degree', async () => {
         const arr = readFile('270-flipped-7.jpg');
         const orientation = await getOrientation(arr);
-        expect(orientation).toBe(Orientation.deg270Flipped);
+        expect(orientation).toEqual({ rotation: 270, flipped: true });
       });
 
       it('image without Exif', async () => {
         const arr = readFile('no-exif.jpg');
         const orientation = await getOrientation(arr);
-        expect(orientation).toBe(Orientation.unknown);
+        expect(orientation).toBeUndefined();
       });
 
       it('non-JPEG image', async () => {
         const arr = readFile('png.png');
         const orientation = await getOrientation(arr);
-        expect(orientation).toBe(Orientation.unknown);
+        expect(orientation).toBeUndefined();
       });
 
       it('empty file', async () => {
         const arr = readFile('empty.txt');
         const orientation = await getOrientation(arr);
-        expect(orientation).toBe(Orientation.unknown);
+        expect(orientation).toBeUndefined();
       });
     });
   });

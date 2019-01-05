@@ -1,4 +1,4 @@
-export enum Orientation {
+export enum OrientationCode {
   original = 1,
   deg90 = 6,
   deg180 = 3,
@@ -16,14 +16,14 @@ export interface IOrientationInfo {
 }
 
 const orientationInfoMap: { [orientation: number]: IOrientationInfo } = {
-  [Orientation.original]: { rotation: 0, flipped: false },
-  [Orientation.deg90]: { rotation: 90, flipped: false },
-  [Orientation.deg180]: { rotation: 180, flipped: false },
-  [Orientation.deg270]: { rotation: 270, flipped: false },
-  [Orientation.flipped]: { rotation: 0, flipped: true },
-  [Orientation.deg90Flipped]: { rotation: 90, flipped: true },
-  [Orientation.deg180Flipped]: { rotation: 180, flipped: true },
-  [Orientation.deg270Flipped]: { rotation: 270, flipped: true },
+  [OrientationCode.original]: { rotation: 0, flipped: false },
+  [OrientationCode.deg90]: { rotation: 90, flipped: false },
+  [OrientationCode.deg180]: { rotation: 180, flipped: false },
+  [OrientationCode.deg270]: { rotation: 270, flipped: false },
+  [OrientationCode.flipped]: { rotation: 0, flipped: true },
+  [OrientationCode.deg90Flipped]: { rotation: 90, flipped: true },
+  [OrientationCode.deg180Flipped]: { rotation: 180, flipped: true },
+  [OrientationCode.deg270Flipped]: { rotation: 270, flipped: true },
 };
 
 // tslint:disable:object-literal-sort-keys
@@ -59,8 +59,25 @@ const statics = {
 };
 // tslint:enable:object-literal-sort-keys
 
+/**
+ * If the input is not JPEG file with Exif containing orientation information,
+ * it returns `undefined`.
+ * @param input JPEG file data.
+ */
+export async function getOrientation (
+  input: File | Buffer | ArrayBuffer,
+): Promise<IOrientationInfo | undefined> {
+  const code = await readOrientationCode(input);
+  const info = getOrientationInfo(code);
+  return info;
+}
+
+/**
+ * Converts orientation code specified in Exif to readable information.
+ * @param input JPEG file data.
+ */
 export function getOrientationInfo (
-  orientation: Orientation,
+  orientation: OrientationCode,
 ): IOrientationInfo | undefined {
   return orientationInfoMap[orientation];
 }
@@ -76,17 +93,17 @@ function isValidJpeg (view: DataView) {
 /**
  * @see http://www.cipa.jp/std/documents/j/DC-008-2012_J.pdf
  */
-export async function getOrientation (
+export async function readOrientationCode (
   input: File | Buffer | ArrayBuffer,
-): Promise<Orientation> {
+): Promise<OrientationCode> {
   const view = await prepareDataView(input);
   if (!isValidJpeg(view)) {
-    return Orientation.unknown;
+    return OrientationCode.unknown;
   }
 
   const segmentOffset = await findExifSegmentOffset(view);
   if (segmentOffset < 0) {
-    return Orientation.unknown;
+    return OrientationCode.unknown;
   }
 
   const tiffHeaderOffset =
@@ -102,7 +119,7 @@ export async function getOrientation (
   );
   if (orientationOffset < 0) {
     console.warn('Rotation information was not found');
-    return Orientation.unknown;
+    return OrientationCode.unknown;
   }
 
   const orientation = readOrientationValueAt(
