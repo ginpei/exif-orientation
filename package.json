@@ -2,8 +2,8 @@
   "name": "@ginpei/exif-orientation",
   "version": "0.0.2",
   "description": "Detect Exif orientation data from JPEG file",
-  "main": "out/exif-orientation.js",
-  "types": "out/exif-orientation.d.ts",
+  "main": "out/index.js",
+  "types": "out/index.d.ts",
   "scripts": {
     "build": "rm -rf out/* && tsc",
     "dev": "jest --watch",
