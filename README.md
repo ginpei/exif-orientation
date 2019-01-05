@@ -135,5 +135,5 @@ See:
 ## Contact
 
 - by Ginpei
-- GitHub: [ginpei](https://github.com/ginpei/exif-orientation)/[exif-orientation](https://github.com/ginpei/exif-orientation)
+- GitHub: [ginpei](https://github.com/ginpei/)/[exif-orientation](https://github.com/ginpei/exif-orientation)
 - Twitter: [@ginpei\_en](https://twitter.com/ginpei_en)
