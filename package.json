@@ -5,7 +5,7 @@
   "main": "out/exif-orientation.js",
   "types": "out/exif-orientation.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "rm -rf out/* && tsc",
     "dev": "jest --watch",
     "test": "jest"
   },
