@@ -59,6 +59,10 @@ const statics = {
 };
 // tslint:enable:object-literal-sort-keys
 
+function sleep (ms: number) {
+  return new Promise((done) => setTimeout(done, ms));
+}
+
 /**
  * If the input is not JPEG file with Exif containing orientation information,
  * it returns `undefined`.
@@ -70,24 +74,6 @@ export async function getOrientation (
   const code = await readOrientationCode(input);
   const info = getOrientationInfo(code);
   return info;
-}
-
-/**
- * Converts orientation code specified in Exif to readable information.
- * @param input JPEG file data.
- */
-export function getOrientationInfo (
-  orientation: OrientationCode,
-): IOrientationInfo | undefined {
-  return orientationInfoMap[orientation];
-}
-
-function sleep (ms: number) {
-  return new Promise((done) => setTimeout(done, ms));
-}
-
-function isValidJpeg (view: DataView) {
-  return view.byteLength >= 2 && view.getUint16(0, false) === statics.jpeg;
 }
 
 /**
@@ -157,6 +143,10 @@ async function readFile (file: File) {
   });
 
   return arrayBuffer;
+}
+
+function isValidJpeg (view: DataView) {
+  return view.byteLength >= 2 && view.getUint16(0, false) === statics.jpeg;
 }
 
 /**
@@ -308,4 +298,14 @@ function readOrientationValueAt (
 ) {
   const orientation = view.getUint16(offset, littleEndian);
   return orientation;
+}
+
+/**
+ * Converts orientation code specified in Exif to readable information.
+ * @param input JPEG file data.
+ */
+export function getOrientationInfo (
+  orientation: OrientationCode,
+): IOrientationInfo | undefined {
+  return orientationInfoMap[orientation];
 }
