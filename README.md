@@ -24,6 +24,8 @@ console.log(
 
 ## Examples
 
+See https://github.com/ginpei/exif-orientation-example.
+
 ### Read file from `<input type="file">`
 
 ```ts
