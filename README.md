@@ -125,7 +125,7 @@ See:
 
 ## History
 
-- 2019-00-00: v1.0.0
+- 2019-01-06: v1.0.0
   - First Release
 
 ## License
