@@ -104,6 +104,10 @@ If you see an image rotated weirdly, it might be caused by lacking logic for thi
 
 - [Exif - Wikipedia](https://en.wikipedia.org/wiki/Exif)
 
+Following PDF file (Japanese) really helped to implement. Thanks!
+
+- [ディジタルスチルカメラ用 - DC-008-2012_J.pdf](http://www.cipa.jp/std/documents/j/DC-008-2012_J.pdf)
+
 ### Cannot find module '@ginpei/exif-orientation'
 
 ```
