@@ -27,7 +27,7 @@
   "homepage": "https://github.com/ginpei/exif-orientation#readme",
   "devDependencies": {
     "@types/jest": "^23.3.11",
-    "@types/node": "^10.12.18",
+    "@types/node": "^11.9.0",
     "jest": "^23.6.0",
     "ts-jest": "^23.10.5",
     "tslint": "^5.12.0",
