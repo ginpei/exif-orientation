@@ -1,7 +1,12 @@
 import * as fs from 'fs';
-import { getOrientation } from './index';
+import { getOrientation, setOrientation } from './index';
 
 describe('imageUtil', () => {
+  const readFile = (name: string) => {
+    const buffer = fs.readFileSync(`test/${name}`);
+    return buffer.buffer;
+  };
+
   describe('getOrientation()', () => {
     it('accepts Buffer', async () => {
       const buffer = fs.readFileSync(`test/000-1.jpg`);
@@ -23,11 +28,6 @@ describe('imageUtil', () => {
     });
 
     describe('recognize orientation from file of', () => {
-      const readFile = (name: string) => {
-        const buffer = fs.readFileSync(`test/${name}`);
-        return buffer.buffer;
-      };
-
       it('original image', async () => {
         const arr = readFile('000-1.jpg');
         const orientation = await getOrientation(arr);
@@ -93,6 +93,15 @@ describe('imageUtil', () => {
         const orientation = await getOrientation(arr);
         expect(orientation).toBeUndefined();
       });
+    });
+  });
+
+  describe('setOrientation()', () => {
+    it('original image', async () => {
+      const arr = readFile('000-flipped-2.jpg');
+      await setOrientation(arr, 1);
+      const orientation = await getOrientation(arr);
+      expect(orientation).toEqual({ rotation: 0, flipped: false });
     });
   });
 });

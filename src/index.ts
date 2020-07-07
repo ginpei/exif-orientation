@@ -76,6 +76,13 @@ export async function getOrientation (
   return info;
 }
 
+export async function setOrientation (
+  input: File | Buffer | ArrayBuffer,
+  orientation: number,
+): Promise<void> {
+    // todo: needs implementation
+}
+
 /**
  * @see http://www.cipa.jp/std/documents/j/DC-008-2012_J.pdf
  */
