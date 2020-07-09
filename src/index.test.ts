@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { getOrientation, setOrientation } from './index';
+import { getOrientation, OrientationCode, updateOrientationCode } from './index';
 
 describe('imageUtil', () => {
   const readFile = (name: string) => {
@@ -96,12 +96,67 @@ describe('imageUtil', () => {
     });
   });
 
-  describe('setOrientation()', () => {
-    it('original image', async () => {
-      const arr = readFile('000-flipped-2.jpg');
-      await setOrientation(arr, 1);
-      const orientation = await getOrientation(arr);
+  describe('updateOrientationCode()', () => {
+    it('accepts Buffer', async () => {
+      const buffer = fs.readFileSync('test/000-flipped-2.jpg');
+      await updateOrientationCode(buffer.buffer, OrientationCode.original);
+      const orientation = await getOrientation(buffer.buffer);
       expect(orientation).toEqual({ rotation: 0, flipped: false });
+    });
+
+    it('accepts ArrayBuffer', async () => {
+      const buffer = fs.readFileSync('test/000-flipped-2.jpg');
+      const arrayBuffer = new ArrayBuffer(buffer.byteLength);
+      const view = new DataView(arrayBuffer);
+      buffer.forEach((value, index) => {
+        view.setUint8(index, value);
+      });
+      await updateOrientationCode(arrayBuffer, OrientationCode.original);
+
+      const orientation = await getOrientation(arrayBuffer);
+      expect(orientation).toEqual({ rotation: 0, flipped: false });
+    });
+
+    describe('update orientation from file of', () => {
+      it('flipped image update orientation', async () => {
+        const arr = readFile('000-flipped-2.jpg');
+        await updateOrientationCode(arr, OrientationCode.original);
+        const orientation = await getOrientation(arr);
+        expect(orientation).toEqual({ rotation: 0, flipped: false });
+      });
+
+      it('image without Exif', async () => {
+        const arr = readFile('no-exif.jpg');
+        const errorMessage = 'The File you are trying to update has no exif data';
+
+        try {
+          await updateOrientationCode(arr, OrientationCode.original);
+        } catch (error) {
+          expect(error.message).toBe(errorMessage);
+        }
+      });
+
+      it('non-JPEG image', async () => {
+        const arr = readFile('png.png');
+        const errorMessage = 'The File you are trying to update is not a jpeg';
+
+        try {
+          await updateOrientationCode(arr, OrientationCode.original);
+        } catch (error) {
+          expect(error.message).toBe(errorMessage);
+        }
+      });
+
+      it('empty file', async () => {
+        const arr = readFile('empty.txt');
+        const errorMessage = 'The File you are trying to update is not a jpeg';
+
+        try {
+          await updateOrientationCode(arr, OrientationCode.original);
+        } catch (error) {
+          expect(error.message).toBe(errorMessage);
+        }
+      });
     });
   });
 });
