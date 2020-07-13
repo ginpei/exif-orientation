@@ -92,17 +92,8 @@ export async function readOrientationCode (
     return OrientationCode.unknown;
   }
 
-  const tiffHeaderOffset =
-    segmentOffset + statics.offsets.tiffHeader.fromSegment;
-  const littleEndian = isLittleEndian(view, tiffHeaderOffset);
-  const ifdPosition = findIfdPosition(view, tiffHeaderOffset, littleEndian);
-  const ifdFieldOffset = ifdPosition + statics.ifdFieldCountLength;
+  const {littleEndian, orientationOffset} = getOrientationOffsetAndLittleEndian(view, segmentOffset);
 
-  const orientationOffset = findOrientationOffset(
-    view,
-    ifdFieldOffset,
-    littleEndian,
-  );
   if (orientationOffset < 0) {
     console.warn('Rotation information was not found');
     return OrientationCode.unknown;
@@ -114,6 +105,42 @@ export async function readOrientationCode (
     littleEndian,
   );
   return orientation;
+}
+
+export async function updateOrientationCode (
+  input: File | Buffer | ArrayBuffer,
+  orientation: OrientationCode,
+): Promise<void> {
+  const view = await prepareDataView(input);
+  if (!isValidJpeg(view)) {
+    throw new Error('The File you are trying to update is not a jpeg');
+  }
+
+  const segmentOffset = await findExifSegmentOffset(view);
+  if (segmentOffset < 0) {
+    throw new Error('The File you are trying to update has no exif data');
+  }
+
+  const {littleEndian, orientationOffset} = getOrientationOffsetAndLittleEndian(view, segmentOffset);
+  setOrientationValueAt(
+    view,
+    orientationOffset,
+    orientation,
+    littleEndian,
+  );
+}
+
+function getOrientationOffsetAndLittleEndian (view: DataView, segmentOffset: number) {
+  const tiffHeaderOffset = segmentOffset + statics.offsets.tiffHeader.fromSegment;
+  const littleEndian = isLittleEndian(view, tiffHeaderOffset);
+  const ifdPosition = findIfdPosition(view, tiffHeaderOffset, littleEndian);
+  const ifdFieldOffset = ifdPosition + statics.ifdFieldCountLength;
+  const orientationOffset = findOrientationOffset(
+    view,
+    ifdFieldOffset,
+    littleEndian,
+  );
+  return {littleEndian, orientationOffset};
 }
 
 async function prepareDataView (
@@ -298,6 +325,15 @@ function readOrientationValueAt (
 ) {
   const orientation = view.getUint16(offset, littleEndian);
   return orientation;
+}
+
+function setOrientationValueAt (
+  view: DataView,
+  offset: number,
+  orientation: OrientationCode,
+  littleEndian: boolean,
+) {
+  view.setUint16(offset, orientation, littleEndian);
 }
 
 /**

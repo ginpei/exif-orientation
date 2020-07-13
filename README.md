@@ -4,7 +4,7 @@
 [![Greenkeeper badge](https://badges.greenkeeper.io/ginpei/exif-orientation.svg)](https://greenkeeper.io/)
 [![Maintainability](https://api.codeclimate.com/v1/badges/022850f0f474ca642afe/maintainability)](https://codeclimate.com/github/ginpei/exif-orientation/maintainability)
 
-Get orientation (rotation and flipping) info from Exif-ed JPEG.
+Get orientation (rotation and flipping) info from Exif-ed JPEG or Update orientation code.
 
 ## Usage
 
@@ -20,6 +20,12 @@ console.log(
   `${orientation.rotation} degree,`,
   orientation.flipped ? 'flipped' : 'not flipped',
 );
+```
+
+```ts
+import * as exif from '@ginpei/exif-orientation';
+
+await exif.updateOrientationCode(fileOrBuffer, exif.OrientationCode.deg90Flipped);
 ```
 
 ## Examples
@@ -64,6 +70,11 @@ To import in TypeScript, you need to set `moduleResolution` option. Find detail 
 - `input: File | Buffer | ArrayBuffer` : JPEG file data.
 
 If the input is not JPEG file with Exif containing orientation information, it returns `undefined`.
+
+### `function updateOrientationCode (input: File | Buffer | ArrayBuffer, orientation: OrientationCode): Promise<void>`
+
+- `input: File | Buffer | ArrayBuffer` : JPEG file data.
+- `orientation: OrientationCode` : Orientation number.
 
 ### `function readOrientationCode(input: File | Buffer | ArrayBuffer): Promise<OrientationCode>`
 
