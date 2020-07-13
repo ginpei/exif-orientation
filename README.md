@@ -25,7 +25,7 @@ console.log(
 ```ts
 import * as exif from '@ginpei/exif-orientation';
 
-await exif.updateOrientationCode(fileOrBuffer, 5);
+await exif.updateOrientationCode(fileOrBuffer, exif.OrientationCode.deg90Flipped);
 ```
 
 ## Examples
