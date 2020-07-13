@@ -142,6 +142,8 @@ See:
 
 ## History
 
+- 2020-07-13: v1.1.0
+  - Add `updateOrientationCode()` (Tony Brobston [@TonyBrobston](https://github.com/TonyBrobston))
 - 2019-01-06: v1.0.0
   - First Release
 
