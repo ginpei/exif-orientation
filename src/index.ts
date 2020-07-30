@@ -107,6 +107,11 @@ export async function readOrientationCode (
   return orientation;
 }
 
+export async function insertOrientationCode (
+  input: File | Buffer | ArrayBuffer,
+  orientation: OrientationCode,
+): Promise<void> {}
+
 export async function updateOrientationCode (
   input: File | Buffer | ArrayBuffer,
   orientation: OrientationCode,

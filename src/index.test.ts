@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { getOrientation, OrientationCode, updateOrientationCode } from './index';
+import { getOrientation, insertOrientationCode, OrientationCode, updateOrientationCode } from './index';
 
 describe('imageUtil', () => {
   const readFile = (name: string) => {
@@ -157,6 +157,35 @@ describe('imageUtil', () => {
           expect(error.message).toBe(errorMessage);
         }
       });
+    });
+  });
+
+  describe('insertOrientationCode()', () => {
+    it('accepts Buffer', async () => {
+      const buffer = fs.readFileSync('test/no-exif.jpg');
+      await insertOrientationCode(buffer.buffer, OrientationCode.original);
+      const orientation = await getOrientation(buffer.buffer);
+      expect(orientation).toEqual({ rotation: 0, flipped: false });
+    });
+
+    it('accepts ArrayBuffer', async () => {
+      const buffer = fs.readFileSync(`test/no-exif.jpg`);
+      const arrayBuffer = new ArrayBuffer(buffer.byteLength);
+      const view = new DataView(arrayBuffer);
+      buffer.forEach((value, index) => {
+        view.setUint8(index, value);
+      });
+
+      await insertOrientationCode(arrayBuffer, OrientationCode.original);
+      const orientation = await getOrientation(arrayBuffer);
+      expect(orientation).toEqual({ rotation: 0, flipped: false });
+    });
+
+    it('accepts File', async () => {
+        const arr = readFile('no-exif.jpg');
+        await insertOrientationCode(arr, OrientationCode.original);
+        const orientation = await getOrientation(arr);
+        expect(orientation).toEqual({ rotation: 0, flipped: false });
     });
   });
 });
