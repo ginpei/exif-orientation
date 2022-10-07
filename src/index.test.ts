@@ -82,6 +82,12 @@ describe('imageUtil', () => {
         expect(orientation).toBeUndefined();
       });
 
+      it('image with non-Exif APP1 before Exif APP1', async () => {
+        const arr = readFile('xml-before-exif.jpg');
+        const orientation = await getOrientation(arr);
+        expect(orientation).toBeUndefined();
+      });
+
       it('non-JPEG image', async () => {
         const arr = readFile('png.png');
         const orientation = await getOrientation(arr);
