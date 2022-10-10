@@ -1,13 +1,14 @@
 {
   "name": "@descript/exif-orientation",
   "private": false,
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Detect Exif orientation data from JPEG file",
   "main": "out/index.js",
   "types": "out/index.d.ts",
   "scripts": {
     "build": "rm -rf out/* && tsc",
     "dev": "jest --watch",
+    "prepublishOnly": "npm run build",
     "test": "jest"
   },
   "repository": {
