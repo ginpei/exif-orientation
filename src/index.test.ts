@@ -134,34 +134,19 @@ describe('imageUtil', () => {
       it('image without Exif', async () => {
         const arr = readFile('no-exif.jpg');
         const errorMessage = 'The File you are trying to update has no exif data';
-
-        try {
-          await updateOrientationCode(arr, OrientationCode.original);
-        } catch (error) {
-          expect(error.message).toBe(errorMessage);
-        }
+        await expect(updateOrientationCode(arr, OrientationCode.original)).rejects.toThrow(errorMessage);
       });
 
       it('non-JPEG image', async () => {
         const arr = readFile('png.png');
         const errorMessage = 'The File you are trying to update is not a jpeg';
-
-        try {
-          await updateOrientationCode(arr, OrientationCode.original);
-        } catch (error) {
-          expect(error.message).toBe(errorMessage);
-        }
+        await expect(updateOrientationCode(arr, OrientationCode.original)).rejects.toThrow(errorMessage);
       });
 
       it('empty file', async () => {
         const arr = readFile('empty.txt');
         const errorMessage = 'The File you are trying to update is not a jpeg';
-
-        try {
-          await updateOrientationCode(arr, OrientationCode.original);
-        } catch (error) {
-          expect(error.message).toBe(errorMessage);
-        }
+        await expect(updateOrientationCode(arr, OrientationCode.original)).rejects.toThrow(errorMessage);
       });
     });
   });
