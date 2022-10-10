@@ -1,6 +1,7 @@
 {
-  "name": "@ginpei/exif-orientation",
-  "version": "1.1.0",
+  "name": "@descript/exif-orientation",
+  "private": false,
+  "version": "1.2.0",
   "description": "Detect Exif orientation data from JPEG file",
   "main": "out/index.js",
   "types": "out/index.d.ts",
@@ -11,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ginpei/exif-orientation.git"
+    "url": "git+https://github.com/descriptinc/exif-orientation.git"
   },
   "keywords": [
     "jpeg",
@@ -22,9 +23,9 @@
   "author": "Ginpei",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/ginpei/exif-orientation/issues"
+    "url": "https://github.com/descriptinc/exif-orientation/issues"
   },
-  "homepage": "https://github.com/ginpei/exif-orientation#readme",
+  "homepage": "https://github.com/descriptinc/exif-orientation#readme",
   "devDependencies": {
     "@types/jest": "^26.0.4",
     "@types/node": "^14.0.19",

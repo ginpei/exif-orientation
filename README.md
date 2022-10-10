@@ -6,6 +6,8 @@
 
 Get orientation (rotation and flipping) info from Exif-ed JPEG or Update orientation code.
 
+Forked from [https://github.com/ginpei/exif-orientation-example](https://github.com/ginpei/exif-orientation-example) for bug fixes
+
 ## Usage
 
 ```
