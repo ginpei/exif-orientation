@@ -14,7 +14,7 @@ describe("imageUtil", () => {
   describe("getOrientation()", () => {
     it("accepts Buffer", async () => {
       const buffer = fs.readFileSync(`test/000-1.jpg`);
-      const orientation = await getOrientation(buffer.buffer);
+      const orientation = await getOrientation(buffer);
       expect(orientation).toEqual({ rotation: 0, flipped: false });
     });
 
