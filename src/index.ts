@@ -26,38 +26,27 @@ const orientationInfoMap: { [orientation: number]: IOrientationInfo } = {
   [OrientationCode.deg270Flipped]: { rotation: 270, flipped: true },
 };
 
-/* eslint-disable  */
-const statics = {
-  jpeg: 0xffd8,
-  app1Marker: 0xffe1,
-  exifId: [0x45, 0x78, 0x69, 0x66, 0x00, 0x00], // "Exif\0\0"
-  orderLittleEndian: 0x4949,
-  endianAssertion: 0x002a,
-  ifdFieldCountLength: 2,
-  orientationTag: 0x0112,
-  offsets: {
-    firstMarker: 2,
-    segment: {
-      marker: 0,
-      length: 2,
-      exifId: 4,
-    },
-    tiffHeader: {
-      fromSegment: 10,
-      byteOrder: 0,
-      endianAssertion: 2,
-      ifdOffset: 4,
-    },
-    ifd: {
-      fromTiffHeader: -1,
-      tag: 0,
-      type: 2,
-      count: 4,
-      value: 8,
-    },
-  },
-};
-/* eslint-enable */
+const JPEG_HEADER = 0xffd8;
+const APP1_MARKER = 0xffe1;
+const APP1_EXIF_ID = [0x45, 0x78, 0x69, 0x66, 0x00, 0x00]; // "Exif\0\0"
+const ORDER_LITTLE_ENDIAN = 0x4949;
+const ENDIAN_ASSERTION = 0x002a;
+const IFD_FIELD_COUNT_LENGTH = 2;
+const ORIENTATION_TAG = 0x0112;
+const FIRST_MARKER_OFFSET = 2;
+const SEGMENT_MARKER_OFFSET = 0;
+const SEGMENT_LENGTH_OFFSET = 2;
+const SEGMENT_EXIF_ID_OFFSET = 4;
+const TIFF_HEADER_FROM_SEGMENT_OFFSET = 10;
+const TIFF_HEADER_BYTE_ORDER_OFFSET = 0;
+const TIFF_HEADER_ENDIAN_ASSERTION_OFFSET = 2;
+const TIFF_HEADER_IFD_OFFSET = 4;
+// Unused:
+// const IFD_FROM_TIFF_HEADER_OFFSET = -1;
+// const IFD_TAG_OFFSET = 0;
+// const IFD_TYPE_OFFSET = 2;
+// const IFD_COUNT_OFFSET = 4;
+const IFD_VALUE_OFFSET = 8;
 
 function sleep(ms: number) {
   return new Promise((done) => setTimeout(done, ms));
@@ -99,11 +88,7 @@ export async function readOrientationCode(
     return OrientationCode.unknown;
   }
 
-  return readOrientationValueAt(
-    view,
-    orientationOffset,
-    littleEndian
-  );
+  return readOrientationValueAt(view, orientationOffset, littleEndian);
 }
 
 export async function updateOrientationCode(
@@ -129,11 +114,10 @@ function getOrientationOffsetAndLittleEndian(
   view: DataView,
   segmentOffset: number
 ) {
-  const tiffHeaderOffset =
-    segmentOffset + statics.offsets.tiffHeader.fromSegment;
+  const tiffHeaderOffset = segmentOffset + TIFF_HEADER_FROM_SEGMENT_OFFSET;
   const littleEndian = isLittleEndian(view, tiffHeaderOffset);
   const ifdPosition = findIfdPosition(view, tiffHeaderOffset, littleEndian);
-  const ifdFieldOffset = ifdPosition + statics.ifdFieldCountLength;
+  const ifdFieldOffset = ifdPosition + IFD_FIELD_COUNT_LENGTH;
   const orientationOffset = findOrientationOffset(
     view,
     ifdFieldOffset,
@@ -169,7 +153,7 @@ async function readFile(file: File) {
 }
 
 function isValidJpeg(view: DataView) {
-  return view.byteLength >= 2 && view.getUint16(0, false) === statics.jpeg;
+  return view.byteLength >= 2 && view.getUint16(0, false) === JPEG_HEADER;
 }
 
 /**
@@ -196,14 +180,14 @@ async function* iterateMarkerSegments(view: DataView) {
   // (The doc describe APP1 have to lay next to the SOI,
   //  however, Photoshop renders a JPEG file that SOI is followed by APP0.)
 
-  let segmentPosition = statics.offsets.firstMarker;
+  let segmentPosition = FIRST_MARKER_OFFSET;
   while (true) {
     // just in case
     await sleep(1);
 
     yield segmentPosition;
 
-    const offsetLength = statics.offsets.segment.length;
+    const offsetLength = SEGMENT_LENGTH_OFFSET;
     const length =
       offsetLength + view.getUint16(segmentPosition + offsetLength, false);
     segmentPosition += length;
@@ -215,18 +199,13 @@ async function* iterateMarkerSegments(view: DataView) {
 }
 
 function isExifSegment(view: DataView, segmentPosition: number) {
-  const marker = view.getUint16(
-    segmentPosition + statics.offsets.segment.marker,
-    false
-  );
-  if (marker !== statics.app1Marker) {
+  const marker = view.getUint16(segmentPosition + SEGMENT_MARKER_OFFSET, false);
+  if (marker !== APP1_MARKER) {
     return false;
   }
-  for (let i = 0; i < statics.exifId.length; i++) {
-    const c = view.getUint8(
-      segmentPosition + statics.offsets.segment.exifId + i
-    );
-    if (c !== statics.exifId[i]) {
+  for (let i = 0; i < APP1_EXIF_ID.length; i++) {
+    const c = view.getUint8(segmentPosition + SEGMENT_EXIF_ID_OFFSET + i);
+    if (c !== APP1_EXIF_ID[i]) {
       return false;
     }
   }
@@ -235,10 +214,10 @@ function isExifSegment(view: DataView, segmentPosition: number) {
 
 function isLittleEndian(view: DataView, tiffHeaderOffset: number) {
   const endian = view.getUint16(
-    tiffHeaderOffset + statics.offsets.tiffHeader.byteOrder,
+    tiffHeaderOffset + TIFF_HEADER_BYTE_ORDER_OFFSET,
     false
   );
-  return endian === statics.orderLittleEndian;
+  return endian === ORDER_LITTLE_ENDIAN;
 }
 
 function findIfdPosition(
@@ -252,17 +231,17 @@ function findIfdPosition(
   // - offset of IFD (long). Minimum is `0x00000008` (8).
 
   const endianAssertionValue = view.getUint16(
-    tiffHeaderOffset + statics.offsets.tiffHeader.endianAssertion,
+    tiffHeaderOffset + TIFF_HEADER_ENDIAN_ASSERTION_OFFSET,
     littleEndian
   );
-  if (endianAssertionValue !== statics.endianAssertion) {
+  if (endianAssertionValue !== ENDIAN_ASSERTION) {
     throw new Error(
       `Invalid JPEG format: littleEndian ${littleEndian}, assertion: 0x${endianAssertionValue}`
     );
   }
 
   const ifdDistance = view.getUint32(
-    tiffHeaderOffset + statics.offsets.tiffHeader.ifdOffset,
+    tiffHeaderOffset + TIFF_HEADER_IFD_OFFSET,
     littleEndian
   );
 
@@ -277,8 +256,8 @@ function findOrientationOffset(
   const fieldIterator = iterateIfdFields(view, ifdFieldOffset, littleEndian);
   for (const offset of fieldIterator) {
     const tag = view.getUint16(ifdFieldOffset + offset, littleEndian);
-    if (tag === statics.orientationTag) {
-      return ifdFieldOffset + offset + statics.offsets.ifd.value;
+    if (tag === ORIENTATION_TAG) {
+      return ifdFieldOffset + offset + IFD_VALUE_OFFSET;
     }
   }
 
