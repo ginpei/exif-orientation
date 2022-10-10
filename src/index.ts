@@ -26,7 +26,7 @@ const orientationInfoMap: { [orientation: number]: IOrientationInfo } = {
   [OrientationCode.deg270Flipped]: { rotation: 270, flipped: true },
 };
 
-// tslint:disable:object-literal-sort-keys
+/* eslint-disable  */
 const statics = {
   jpeg: 0xffd8,
   app1Marker: 0xffe1,
@@ -57,9 +57,9 @@ const statics = {
     },
   },
 };
-// tslint:enable:object-literal-sort-keys
+/* eslint-enable */
 
-function sleep (ms: number) {
+function sleep(ms: number) {
   return new Promise((done) => setTimeout(done, ms));
 }
 
@@ -68,19 +68,18 @@ function sleep (ms: number) {
  * it returns `undefined`.
  * @param input JPEG file data.
  */
-export async function getOrientation (
-  input: File | Buffer | ArrayBuffer,
+export async function getOrientation(
+  input: File | Buffer | ArrayBuffer
 ): Promise<IOrientationInfo | undefined> {
   const code = await readOrientationCode(input);
-  const info = getOrientationInfo(code);
-  return info;
+  return getOrientationInfo(code);
 }
 
 /**
  * @see http://www.cipa.jp/std/documents/j/DC-008-2012_J.pdf
  */
-export async function readOrientationCode (
-  input: File | Buffer | ArrayBuffer,
+export async function readOrientationCode(
+  input: File | Buffer | ArrayBuffer
 ): Promise<OrientationCode> {
   const view = await prepareDataView(input);
   if (!isValidJpeg(view)) {
@@ -92,94 +91,91 @@ export async function readOrientationCode (
     return OrientationCode.unknown;
   }
 
-  const {littleEndian, orientationOffset} = getOrientationOffsetAndLittleEndian(view, segmentOffset);
+  const { littleEndian, orientationOffset } =
+    getOrientationOffsetAndLittleEndian(view, segmentOffset);
 
   if (orientationOffset < 0) {
-    console.warn('Rotation information was not found');
+    console.warn("Rotation information was not found");
     return OrientationCode.unknown;
   }
 
-  const orientation = readOrientationValueAt(
+  return readOrientationValueAt(
     view,
     orientationOffset,
-    littleEndian,
+    littleEndian
   );
-  return orientation;
 }
 
-export async function updateOrientationCode (
+export async function updateOrientationCode(
   input: File | Buffer | ArrayBuffer,
-  orientation: OrientationCode,
+  orientation: OrientationCode
 ): Promise<void> {
   const view = await prepareDataView(input);
   if (!isValidJpeg(view)) {
-    throw new Error('The File you are trying to update is not a jpeg');
+    throw new Error("The File you are trying to update is not a jpeg");
   }
 
   const segmentOffset = await findExifSegmentOffset(view);
   if (segmentOffset < 0) {
-    throw new Error('The File you are trying to update has no exif data');
+    throw new Error("The File you are trying to update has no exif data");
   }
 
-  const {littleEndian, orientationOffset} = getOrientationOffsetAndLittleEndian(view, segmentOffset);
-  setOrientationValueAt(
-    view,
-    orientationOffset,
-    orientation,
-    littleEndian,
-  );
+  const { littleEndian, orientationOffset } =
+    getOrientationOffsetAndLittleEndian(view, segmentOffset);
+  setOrientationValueAt(view, orientationOffset, orientation, littleEndian);
 }
 
-function getOrientationOffsetAndLittleEndian (view: DataView, segmentOffset: number) {
-  const tiffHeaderOffset = segmentOffset + statics.offsets.tiffHeader.fromSegment;
+function getOrientationOffsetAndLittleEndian(
+  view: DataView,
+  segmentOffset: number
+) {
+  const tiffHeaderOffset =
+    segmentOffset + statics.offsets.tiffHeader.fromSegment;
   const littleEndian = isLittleEndian(view, tiffHeaderOffset);
   const ifdPosition = findIfdPosition(view, tiffHeaderOffset, littleEndian);
   const ifdFieldOffset = ifdPosition + statics.ifdFieldCountLength;
   const orientationOffset = findOrientationOffset(
     view,
     ifdFieldOffset,
-    littleEndian,
+    littleEndian
   );
-  return {littleEndian, orientationOffset};
+  return { littleEndian, orientationOffset };
 }
 
-async function prepareDataView (
-  input: File | Buffer | ArrayBuffer,
+async function prepareDataView(
+  input: File | Buffer | ArrayBuffer
 ): Promise<DataView> {
   // To run on both browser and Node.js,
   // need to check constructors existences before checking instance
 
   let arrayBuffer;
-  if (typeof File !== 'undefined' && input instanceof File) {
+  if (typeof File !== "undefined" && input instanceof File) {
     arrayBuffer = await readFile(input);
-  } else if (typeof Buffer !== 'undefined' && input instanceof Buffer) {
+  } else if (typeof Buffer !== "undefined" && input instanceof Buffer) {
     arrayBuffer = input.buffer;
   } else {
     arrayBuffer = input as ArrayBuffer;
   }
 
-  const view = new DataView(arrayBuffer);
-  return view;
+  return new DataView(arrayBuffer);
 }
 
-async function readFile (file: File) {
-  const arrayBuffer = await new Promise<ArrayBuffer>((resolve) => {
+async function readFile(file: File) {
+  return await new Promise<ArrayBuffer>((resolve) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result as ArrayBuffer);
     reader.readAsArrayBuffer(file);
   });
-
-  return arrayBuffer;
 }
 
-function isValidJpeg (view: DataView) {
+function isValidJpeg(view: DataView) {
   return view.byteLength >= 2 && view.getUint16(0, false) === statics.jpeg;
 }
 
 /**
  * Returns `-1` if not found.
  */
-async function findExifSegmentOffset (view: DataView) {
+async function findExifSegmentOffset(view: DataView) {
   for await (const segmentPosition of iterateMarkerSegments(view)) {
     if (isExifSegment(view, segmentPosition)) {
       return segmentPosition;
@@ -190,7 +186,7 @@ async function findExifSegmentOffset (view: DataView) {
   return -1;
 }
 
-async function* iterateMarkerSegments (view: DataView) {
+async function* iterateMarkerSegments(view: DataView) {
   // APPx/Exif p.18, 19, 150
   // - marker (short) `0xffe1` = APP1
   // - length (short) of segment
@@ -218,17 +214,17 @@ async function* iterateMarkerSegments (view: DataView) {
   }
 }
 
-function isExifSegment (view: DataView, segmentPosition: number) {
+function isExifSegment(view: DataView, segmentPosition: number) {
   const marker = view.getUint16(
     segmentPosition + statics.offsets.segment.marker,
-    false,
+    false
   );
   if (marker !== statics.app1Marker) {
     return false;
   }
   for (let i = 0; i < statics.exifId.length; i++) {
     const c = view.getUint8(
-      segmentPosition + statics.offsets.segment.exifId + i,
+      segmentPosition + statics.offsets.segment.exifId + i
     );
     if (c !== statics.exifId[i]) {
       return false;
@@ -237,19 +233,18 @@ function isExifSegment (view: DataView, segmentPosition: number) {
   return true;
 }
 
-function isLittleEndian (view: DataView, tiffHeaderOffset: number) {
+function isLittleEndian(view: DataView, tiffHeaderOffset: number) {
   const endian = view.getUint16(
     tiffHeaderOffset + statics.offsets.tiffHeader.byteOrder,
-    false,
+    false
   );
-  const littleEndian = endian === statics.orderLittleEndian;
-  return littleEndian;
+  return endian === statics.orderLittleEndian;
 }
 
-function findIfdPosition (
+function findIfdPosition(
   view: DataView,
   tiffHeaderOffset: number,
-  littleEndian: boolean | undefined,
+  littleEndian: boolean | undefined
 ) {
   // TIFF Header p.17
   // - byte order (short). `0x4949` = little, `0x4d4d` = big
@@ -258,45 +253,42 @@ function findIfdPosition (
 
   const endianAssertionValue = view.getUint16(
     tiffHeaderOffset + statics.offsets.tiffHeader.endianAssertion,
-    littleEndian,
+    littleEndian
   );
   if (endianAssertionValue !== statics.endianAssertion) {
     throw new Error(
-      `Invalid JPEG format: littleEndian ${littleEndian}, assertion: 0x${endianAssertionValue}`,
+      `Invalid JPEG format: littleEndian ${littleEndian}, assertion: 0x${endianAssertionValue}`
     );
   }
 
   const ifdDistance = view.getUint32(
     tiffHeaderOffset + statics.offsets.tiffHeader.ifdOffset,
-    littleEndian,
+    littleEndian
   );
 
-  const ifdPosition = tiffHeaderOffset + ifdDistance;
-  return ifdPosition;
+  return tiffHeaderOffset + ifdDistance;
 }
 
-function findOrientationOffset (
+function findOrientationOffset(
   view: DataView,
   ifdFieldOffset: number,
-  littleEndian: boolean,
+  littleEndian: boolean
 ) {
   const fieldIterator = iterateIfdFields(view, ifdFieldOffset, littleEndian);
   for (const offset of fieldIterator) {
     const tag = view.getUint16(ifdFieldOffset + offset, littleEndian);
     if (tag === statics.orientationTag) {
-      const orientationValueOffset =
-        ifdFieldOffset + offset + statics.offsets.ifd.value;
-      return orientationValueOffset;
+      return ifdFieldOffset + offset + statics.offsets.ifd.value;
     }
   }
 
   return -1;
 }
 
-function* iterateIfdFields (
+function* iterateIfdFields(
   view: DataView,
   ifdFieldOffset: number,
-  littleEndian: boolean,
+  littleEndian: boolean
 ) {
   // IFD p.23
   // - num of IFD fields (short)
@@ -315,30 +307,28 @@ function* iterateIfdFields (
   }
 }
 
-function readOrientationValueAt (
+function readOrientationValueAt(
   view: DataView,
   offset: number,
-  littleEndian: boolean,
+  littleEndian: boolean
 ) {
-  const orientation = view.getUint16(offset, littleEndian);
-  return orientation;
+  return view.getUint16(offset, littleEndian);
 }
 
-function setOrientationValueAt (
+function setOrientationValueAt(
   view: DataView,
   offset: number,
   orientation: OrientationCode,
-  littleEndian: boolean,
+  littleEndian: boolean
 ) {
   view.setUint16(offset, orientation, littleEndian);
 }
 
 /**
  * Converts orientation code specified in Exif to readable information.
- * @param input JPEG file data.
  */
-export function getOrientationInfo (
-  orientation: OrientationCode,
+export function getOrientationInfo(
+  orientation: OrientationCode
 ): IOrientationInfo | undefined {
   return orientationInfoMap[orientation];
 }
