@@ -282,10 +282,13 @@ function findOrientationOffset (
 ) {
   const fieldIterator = iterateIfdFields(view, ifdFieldOffset, littleEndian);
   for (const offset of fieldIterator) {
-    const tag = view.getUint16(ifdFieldOffset + offset, littleEndian);
+    const index = ifdFieldOffset + offset;
+    if (index > view.byteLength) {
+      return -1;
+    }
+    const tag = view.getUint16(index, littleEndian);
     if (tag === statics.orientationTag) {
-      const orientationValueOffset =
-        ifdFieldOffset + offset + statics.offsets.ifd.value;
+      const orientationValueOffset = index + statics.offsets.ifd.value;
       return orientationValueOffset;
     }
   }
