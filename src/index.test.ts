@@ -82,6 +82,13 @@ describe('imageUtil', () => {
         expect(orientation).toBeUndefined();
       });
 
+      // TODO prepare test file
+      it.skip('image without orientation', async () => {
+        const arr = readFile('no-orientation.jpg');
+        const orientation = await getOrientation(arr);
+        expect(orientation).toBeUndefined();
+      });
+
       it('non-JPEG image', async () => {
         const arr = readFile('png.png');
         const orientation = await getOrientation(arr);
