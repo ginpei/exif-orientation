@@ -90,7 +90,7 @@ describe('imageUtil', () => {
       });
 
       it('image with non-Exif APP1 before Exif APP1', async () => {
-        const arr = readFile('adobe-jpeg.jpg');
+        const arr = readFile('xml-before-exif.jpg');
         const orientation = await getOrientation(arr);
         expect(orientation).toBeUndefined();
       });
