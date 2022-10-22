@@ -142,6 +142,9 @@ See:
 
 ## History
 
+- 2021-10-22: v1.2.0
+  - #20 Support images containing APP1 that is not Exif (Marcello Bastéa-Forte @marcello3d)
+  - #22 Support images containing Exif without orientation
 - 2020-07-13: v1.1.0
   - Add `updateOrientationCode()` (Tony Brobston [@TonyBrobston](https://github.com/TonyBrobston))
 - 2019-01-06: v1.0.0
