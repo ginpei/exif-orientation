@@ -29,8 +29,8 @@ const orientationInfoMap: { [orientation: number]: IOrientationInfo } = {
 // tslint:disable:object-literal-sort-keys
 const statics = {
   jpeg: 0xffd8,
-  exifMarker: 0xffe1,
-  exifId: 0x45786966, // "E", "X", "I", "F"
+  app1Marker: 0xffe1,
+  exifId: [0x45, 0x78, 0x69, 0x66, 0x00, 0x00], // "Exif\0\0"
   orderLittleEndian: 0x4949,
   endianAssertion: 0x002a,
   ifdFieldCountLength: 2,
@@ -182,7 +182,6 @@ function isValidJpeg (view: DataView) {
 async function findExifSegmentOffset (view: DataView) {
   for await (const segmentPosition of iterateMarkerSegments(view)) {
     if (isExifSegment(view, segmentPosition)) {
-      assertExifSegment(view, segmentPosition);
       return segmentPosition;
     }
   }
@@ -214,7 +213,6 @@ async function* iterateMarkerSegments (view: DataView) {
     segmentPosition += length;
 
     if (segmentPosition > view.byteLength) {
-      console.warn('APP1 not found');
       return -1;
     }
   }
@@ -225,19 +223,18 @@ function isExifSegment (view: DataView, segmentPosition: number) {
     segmentPosition + statics.offsets.segment.marker,
     false,
   );
-  return marker === statics.exifMarker;
-}
-
-function assertExifSegment (view: DataView, segmentPosition: number) {
-  // p 150
-
-  const id = view.getUint32(
-    segmentPosition + statics.offsets.segment.exifId,
-    false,
-  );
-  if (id !== statics.exifId) {
-    throw new Error('Segment marked as Exif does not have Exif identifier');
+  if (marker !== statics.app1Marker) {
+    return false;
   }
+  for (let i = 0; i < statics.exifId.length; i++) {
+    const c = view.getUint8(
+      segmentPosition + statics.offsets.segment.exifId + i,
+    );
+    if (c !== statics.exifId[i]) {
+      return false;
+    }
+  }
+  return true;
 }
 
 function isLittleEndian (view: DataView, tiffHeaderOffset: number) {
